@@ -1,0 +1,12 @@
+name: thesis
+dependencies:
+    - pytorch=0.4.1
+    - matplotlib
+    - pretty_midi
+    - python=3.6
+    - scipy
+channels:
+    - pytorch
+    - conda-forge
+    - defaults
+    - roebel

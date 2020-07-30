@@ -5,3 +5,5 @@ midi_utils/
 mscx_files/
 *.pyc
 **/.DS_Store
+env/
+env/**
