@@ -1,6 +1,8 @@
 name: thesis
 dependencies:
-    - pytorch=0.4.1
+    - pytorch=1.1.0
+    - torchvision=0.3.0
+    - cudatoolkit=10.0
     - matplotlib
     - pretty_midi
     - python=3.6

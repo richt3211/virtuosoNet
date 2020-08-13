@@ -1,0 +1,44 @@
+(base) rtimpson@redfish:~/scr/virtuosoNet$ which python3
+/uusoc/exports/scratch/rtimpson/anaconda3/bin/python3
+(base) rtimpson@redfish:~/scr/virtuosoNet$ python3 model_run.py -mode=train -code=isgn_test -data=training_data)[K[1@n[1@i[1@c[1@e[1@ [C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C -dev=1[1P[1P[1P[1P[1P[1P[1P[1P[1P[1@h[1@a[1@n
+model_run.py:489: SyntaxWarning: "is not" with a literal. Did you mean "!="?
+  if i is not 0:
+Traceback (most recent call last):
+  File "model_run.py", line 1, in <module>
+    import torch
+ModuleNotFoundError: No module named 'torch'
+(base) rtimpson@redfish:~/scr/virtuosoNet$ conda activate [K[K[K[K[K[K[K[K[K[K[K[K[K[K[Kconda deactivate
+rtimpson@redfish:~/scr/virtuosoNet$ conda act[K[K[K[K[K[K[K[K[Kwhich ptyh[K[K[Kython3
+/home/rtimpson/.linuxbrew/bin/python3
+rtimpson@redfish:~/scr/virtuosoNet$ conda activate ./evnv[K[K[Knv
+(/uusoc/exports/scratch/rtimpson/virtuosoNet/env) rtimpson@redfish:~/scr/virtuosoNet$ which python3
+/uusoc/exports/scratch/rtimpson/virtuosoNet/env/bin/python3
+(/uusoc/exports/scratch/rtimpson/virtuosoNet/env) rtimpson@redfish:~/scr/virtuosoNet$ which python3conda activate ./env[7Pwhich python3conda deactivatenice python3 model_run.py -mode=train -code=han -data=training_data -dev=1
+Learning Rate: 0.0003, Time_steps: 500, Delta weight: 2, Weight decay: 1e-05, Grad clip: 5, KLD max: 0.01, KLD sig step: 200000.0
+Starting training job at 08/13/20 11:31:23
+Number of Network Parameters is  431819
+Loading the training data...
+number of train performances:  850 number of valid perf:  102
+training sample example [1.7557374663803498, -0.5487886129658778, 1.8530013779749877, -0.5206036676768977, 0.27885489170784683, -0.049099525167436535, -0.5999807363241718, -0.7234020570560775, 0.0, 0.0, 0, 0, 0, 0.5, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0.6, 0, 0, 0, 0, 0.4, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.6, 0]
+current training step is  0
+Traceback (most recent call last):
+  File "model_run.py", line 833, in <module>
+    batch_time_step_run(training_data, model=train_model)
+  File "model_run.py", line 560, in batch_time_step_run
+    = model_train(prime_batch_x, prime_batch_y, edges, note_locations, batch_start)
+  File "/uusoc/exports/scratch/rtimpson/virtuosoNet/env/lib/python3.6/site-packages/torch/nn/modules/module.py", line 493, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/uusoc/exports/scratch/rtimpson/virtuosoNet/nnModel.py", line 717, in forward
+    perform_contracted = self.performance_contractor(perform_concat)
+  File "/uusoc/exports/scratch/rtimpson/virtuosoNet/env/lib/python3.6/site-packages/torch/nn/modules/module.py", line 493, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/uusoc/exports/scratch/rtimpson/virtuosoNet/env/lib/python3.6/site-packages/torch/nn/modules/container.py", line 92, in forward
+    input = module(input)
+  File "/uusoc/exports/scratch/rtimpson/virtuosoNet/env/lib/python3.6/site-packages/torch/nn/modules/module.py", line 493, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/uusoc/exports/scratch/rtimpson/virtuosoNet/env/lib/python3.6/site-packages/torch/nn/modules/linear.py", line 92, in forward
+    return F.linear(input, self.weight, self.bias)
+  File "/uusoc/exports/scratch/rtimpson/virtuosoNet/env/lib/python3.6/site-packages/torch/nn/functional.py", line 1408, in linear
+    output = input.matmul(weight.t())
+RuntimeError: size mismatch, m1: [472 x 139], m2: [523 x 32] at /opt/conda/conda-bld/pytorch_1556653099582/work/aten/src/THC/generic/THCTensorMathBlas.cu:268
+(/uusoc/exports/scratch/rtimpson/virtuosoNet/env) rtimpson@redfish:~/scr/virtuosoNet$ 
