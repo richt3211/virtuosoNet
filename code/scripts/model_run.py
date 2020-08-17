@@ -6,7 +6,6 @@ import numpy as np
 import shutil
 import os
 import matplotlib
-from code.pyScoreParser import xml_matching
 import code.pyScoreParser.xml_matching as xml_matching
 import code.pyScoreParser.performanceWorm as perf_worm
 import code.data.data_process as dp
@@ -155,7 +154,7 @@ class ModelRun():
 
         self.QPM_INDEX = 0
         # VOICE_IDX = 11
-        TEMPO_IDX = 26
+        # TEMPO_IDX = 26
         self.QPM_PRIMO_IDX = 4
         TEMPO_PRIMO_IDX = -2
         self.GRAPH_KEYS = ['onset', 'forward', 'melisma', 'rest']
@@ -799,7 +798,7 @@ class ModelRun():
                     train_x = train_xy[selected_sample.index][0]
                     train_y = train_xy[selected_sample.index][1]
                     if self.args.trainingLoss == 'CE':
-                        train_y = self.catgorize_value_to_vector(train_y, self.BINS)
+                        train_y = self.categorize_value_to_vector(train_y, self.BINS)
                     self.note_locations = train_xy[selected_sample.index][2]
                     align_matched = train_xy[selected_sample.index][3]
                     pedal_status = train_xy[selected_sample.index][4]
@@ -865,7 +864,7 @@ class ModelRun():
                     train_x = xy_tuple[0]
                     train_y = xy_tuple[1]
                     if self.args.trainingLoss == 'CE':
-                        train_y = self.catgorize_value_to_vector(train_y, self.BINS)
+                        train_y = self.categorize_value_to_vector(train_y, self.BINS)
                     self.note_locations = xy_tuple[2]
                     align_matched = xy_tuple[3]
                     pedal_status = xy_tuple[4]
@@ -937,7 +936,7 @@ class ModelRun():
                 else:
                     graphs = None
                 if self.LOSS_TYPE == 'CE':
-                    test_y = self.catgorize_value_to_vector(test_y, self.BINS)
+                    test_y = self.categorize_value_to_vector(test_y, self.BINS)
 
                 batch_x, batch_y = self.handle_data_in_tensor(test_x, test_y)
                 batch_x = batch_x.view(1, -1, self.NUM_INPUT)
@@ -1186,7 +1185,7 @@ class ModelRun():
                 edges = xy_tuple[5]
                 graphs = self.edges_to_matrix(edges, len(test_x))
                 if self.LOSS_TYPE == 'CE':
-                    test_y = self.catgorize_value_to_vector(test_y, self.BINS)
+                    test_y = self.categorize_value_to_vector(test_y, self.BINS)
 
                 if xml_matching.check_feature_pair_is_from_same_piece(prev_perf_x, test_x):
                     piece_changed = False
