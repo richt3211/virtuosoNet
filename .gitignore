@@ -7,3 +7,6 @@ mscx_files/
 **/.DS_Store
 env/
 env/**
+data/test_result/**
+data/train/training_data.dat
+**/training_data.dat

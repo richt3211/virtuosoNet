@@ -6,6 +6,7 @@ dependencies:
     - matplotlib
     - pretty_midi
     - python=3.6
+    - pylint
     - scipy
 channels:
     - pytorch
