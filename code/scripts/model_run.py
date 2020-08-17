@@ -403,7 +403,7 @@ class ModelRun():
                                                model=self.MODEL)
 
         trill_batch_x = torch.cat((batch_x, prediction), 2)
-        trill_prediction, _ = self.run_model_in_steps(trill_batch_x, torch.zeros(1, num_notes, cons.self.num_trill_param), graph,
+        trill_prediction, _ = self.run_model_in_steps(trill_batch_x, torch.zeros(1, num_notes, cons.num_trill_param), graph,
                                                  note_locations, model=self.TRILL_MODEL)
 
         prediction = torch.cat((prediction, trill_prediction), 2)
