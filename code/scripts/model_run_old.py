@@ -9,15 +9,14 @@ import matplotlib
 matplotlib.use('Agg')
 
 from datetime import datetime
-
 import pyScoreParser.xml_matching as xml_matching
 import pyScoreParser.performanceWorm as perf_worm
-import data_process as dp
+import code.data.data_process as dp
 import copy
 import random
-import nnModel
-import model_parameters as param
-import model_constants as cons
+import code.models.nnModel as nnModel
+import code.models.model_parameters as param
+import code.models.model_constants as cons
 import sys
 sys.modules['xml_matching'] = xml_matching
 
