@@ -82,7 +82,7 @@ class ModelRun():
             self.HIERARCHY = True
         elif 'note' in self.args.modelCode:
             self.IN_HIER = True  # In hierarchy mode
-        if self.HIERARCHY or self.self.IN_HIER:
+        if self.HIERARCHY or self.IN_HIER:
             if 'measure' in self.args.modelCode or 'measure' in self.args.hierCode:
                 self.HIER_MEAS = True
             elif 'beat' in self.args.modelCode or 'beat' in self.args.hierCode:
@@ -92,19 +92,19 @@ class ModelRun():
             self.TRILL = True
 
         ### parameters
-        learning_rate = 0.0003
+        self.learning_rate = 0.0003
         self.TIME_STEPS = 500
         self.VALID_STEPS = 5000
         self.DELTA_WEIGHT = 2
-        NUM_UPDATED = 0
-        WEIGHT_DECAY = 1e-5
+        self.NUM_UPDATED = 0
+        weight_decay = 1e-5
         self.GRAD_CLIP = 5
         self.KLD_MAX = 0.01
         self.KLD_SIG = 20e4
         if self.args.sessMode == 'train':
             print(
                 'Learning Rate: {}, Time_steps: {}, Delta weight: {}, Weight decay: {}, Grad clip: {}, KLD max: {}, KLD sig step: {}'.format
-                (self.learning_rate, self.self.TIME_STEPS, self.self.DELTA_WEIGHT, WEIGHT_DECAY, self.GRAD_CLIP, self.KLD_MAX,
+                (self.learning_rate, self.TIME_STEPS, self.DELTA_WEIGHT, weight_decay, self.GRAD_CLIP, self.KLD_MAX,
                  self.KLD_SIG))
 
         self.num_epochs = 100
@@ -115,7 +115,7 @@ class ModelRun():
         if self.HIERARCHY:
             self.NUM_OUTPUT = 2
         elif self.TRILL:
-            self.NUM_INPUT += self.self.NUM_PRIME_PARAM
+            self.NUM_INPUT += self.NUM_PRIME_PARAM
             self.NUM_OUTPUT = 5
         else:
             self.NUM_OUTPUT = 11
@@ -132,7 +132,7 @@ class ModelRun():
         num_tempo_info = 0
         num_dynamic_info = 0  # distance from marking, dynamics vector 4, mean_piano, forte marking and velocity = 4
         is_trill_index_score = -11
-        self.is_trill_index_concated = -11 - (self.self.NUM_PRIME_PARAM + num_second_param)
+        self.is_trill_index_concated = -11 - (self.NUM_PRIME_PARAM + num_second_param)
 
         with open(self.args.dataName + "_stat.dat", "rb") as f:
             u = pickle._Unpickler(f)
@@ -141,14 +141,14 @@ class ModelRun():
                 self.MEANS, self.STDS, self.BINS = u.load()
                 new_prime_param = 0
                 new_trill_param = 0
-                for i in range(self.self.NUM_PRIME_PARAM):
+                for i in range(self.NUM_PRIME_PARAM):
                     new_prime_param += len(self.BINS[i]) - 1
-                for i in range(self.self.NUM_PRIME_PARAM, self.self.NUM_PRIME_PARAM + self.num_trill_param - 1):
+                for i in range(self.NUM_PRIME_PARAM, self.NUM_PRIME_PARAM + self.num_trill_param - 1):
                     new_trill_param += len(self.BINS[i]) - 1
-                self.self.NUM_PRIME_PARAM = new_prime_param
-                print('New self.NUM_PRIME_PARAM: ', self.self.NUM_PRIME_PARAM)
+                self.NUM_PRIME_PARAM = new_prime_param
+                print('New self.NUM_PRIME_PARAM: ', self.NUM_PRIME_PARAM)
                 self.num_trill_param = new_trill_param + 1
-                self.NUM_OUTPUT = self.self.NUM_PRIME_PARAM + self.num_trill_param
+                self.NUM_OUTPUT = self.NUM_PRIME_PARAM + self.num_trill_param
                 self.NUM_TEMPO_PARAM = len(self.BINS[0]) - 1
             else:
                 self.MEANS, self.STDS = u.load()
@@ -202,7 +202,7 @@ class ModelRun():
             print('Error: Unclassified model code')
             # Model = nnModel.HAN_VAE(NET_PARAM, self.DEVICE, False).to(self.DEVICE)
 
-        self.optimizer = torch.optim.Adam(self.MODEL.parameters(), lr=self.learning_rate, weight_decay=WEIGHT_DECAY)
+        self.optimizer = torch.optim.Adam(self.MODEL.parameters(), lr=self.learning_rate, weight_decay=weight_decay)
 
     def criterion(self,pred, target, aligned_status=1):
         if self.LOSS_TYPE == 'MSE':
@@ -715,7 +715,7 @@ class ModelRun():
             y = y[:, :self.NUM_PRIME_PARAM]
         elif self.TRILL:
             x = torch.cat((x, y[:, :self.NUM_PRIME_PARAM]), 1)
-            y = y[:, -self.self.num_trill_param:]
+            y = y[:, -self.num_trill_param:]
         else:
             y = y[:, :self.NUM_PRIME_PARAM]
 
@@ -751,7 +751,7 @@ class ModelRun():
                 self.MODEL.load_state_dict(checkpoint['state_dict'])
                 self.MODEL.device = self.DEVICE
                 self.optimizer.load_state_dict(checkpoint['optimizer'])
-                NUM_UPDATED = checkpoint['training_step']
+                self.NUM_UPDATED = checkpoint['training_step']
                 print("=> loaded checkpoint '{}' (epoch {})"
                       .format(filename, checkpoint['epoch']))
                 start_epoch = checkpoint['epoch'] - 1
@@ -779,7 +779,7 @@ class ModelRun():
 
         # total_step = len(train_loader)
         for epoch in range(start_epoch, self.num_epochs):
-            print('current training step is ', NUM_UPDATED)
+            print('current training step is ', self.NUM_UPDATED)
             tempo_loss_total = []
             vel_loss_total = []
             dev_loss_total = []
@@ -837,7 +837,7 @@ class ModelRun():
                     for i in range(self.num_key_augmentation + 1):
                         key = key_lists[i]
                         temp_train_x = dp.key_augmentation(train_x, key)
-                        self.kld_weight = self.sigmoid((NUM_UPDATED - self.KLD_SIG) / (self.KLD_SIG / 10)) * self.KLD_MAX
+                        self.kld_weight = self.sigmoid((self.NUM_UPDATED - self.KLD_SIG) / (self.KLD_SIG / 10)) * self.KLD_MAX
 
                         self.training_data = {'x': temp_train_x, 'y': train_y, 'graphs': graphs,
                                          'note_locations': self.note_locations,
@@ -853,7 +853,7 @@ class ModelRun():
                         pedal_loss_total.append(pedal_loss.item())
                         trill_loss_total.append(trill_loss.item())
                         kld_total.append(kld.item())
-                        NUM_UPDATED += 1
+                        self.NUM_UPDATED += 1
 
                     del selected_sample.slice_indexes[selected_idx]
                     if len(selected_sample.slice_indexes) == 0:
@@ -891,7 +891,7 @@ class ModelRun():
                         key = key_lists[i]
                         temp_train_x = dp.key_augmentation(train_x, key)
                         slice_indexes = dp.make_slicing_indexes_by_measure(data_size, measure_numbers, steps=self.TIME_STEPS)
-                        self.kld_weight = self.sigmoid((NUM_UPDATED - self.KLD_SIG) / (self.KLD_SIG / 10)) * self.KLD_MAX
+                        self.kld_weight = self.sigmoid((self.NUM_UPDATED - self.KLD_SIG) / (self.KLD_SIG / 10)) * self.KLD_MAX
 
                         for self.slice_idx in slice_indexes:
                             self.training_data = {'x': temp_train_x, 'y': train_y, 'graphs': graphs,
@@ -908,7 +908,7 @@ class ModelRun():
                             pedal_loss_total.append(pedal_loss.item())
                             trill_loss_total.append(trill_loss.item())
                             kld_total.append(kld.item())
-                            NUM_UPDATED += 1
+                            self.NUM_UPDATED += 1
 
             print(
                 'Epoch [{}/{}], Loss - Tempo: {:.4f}, Vel: {:.4f}, Deviation: {:.4f}, Articulation: {:.4f}, Pedal: {:.4f}, Trill: {:.4f}, KLD: {:.4f}'
@@ -1053,7 +1053,7 @@ class ModelRun():
                     'state_dict': self.MODEL.state_dict(),
                     'best_valid_loss': best_trill_loss,
                     'optimizer': self.optimizer.state_dict(),
-                    'training_step': NUM_UPDATED
+                    'training_step': self.NUM_UPDATED
                 }, is_best_trill, model_name='trill')
             else:
                 self.save_checkpoint({
@@ -1061,7 +1061,7 @@ class ModelRun():
                     'state_dict': self.MODEL.state_dict(),
                     'best_valid_loss': best_prime_loss,
                     'optimizer': self.optimizer.state_dict(),
-                    'training_step': NUM_UPDATED
+                    'training_step': self.NUM_UPDATED
                 }, is_best, model_name='prime')
 
         # end of epoch
@@ -1086,7 +1086,7 @@ class ModelRun():
             # self.MODEL.num_graph_iteration = 10
             print("=> loaded checkpoint '{}' (epoch {})"
                   .format(filename, checkpoint['epoch']))
-            # NUM_UPDATED = checkpoint['training_step']
+            # self.NUM_UPDATED = checkpoint['training_step']
             # self.optimizer.load_state_dict(checkpoint['optimizer'])
             # trill_filename = self.args.trillCode + self.args.resume
             trill_filename = self.args.trillCode + '_best.pth.tar'
