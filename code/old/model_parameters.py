@@ -1,5 +1,6 @@
 import pickle
-import model_constants as cons
+from code.models import model_constants as cons
+# import model_constants as cons
 
 class NetParams:
     class Param:
@@ -148,3 +149,38 @@ def initialize_model_parameters_by_code(model_code):
 
     return net_param
 
+class ModelRunParams():
+
+    def __init__(self, params):
+        print(params)
+        self.sessMode = set_param(params, "mode", "test")
+        self.testPath = set_param(params, "path", "./data/test_pieces/bps_5_1")
+        self.dataName = set_param(params, "data", "self.training_data")
+        self.resume = set_param(params, "resume", "_best.pth.tar")
+        self.startTempo = set_param(params, "tempo", False)
+        self.trainTrill = set_param(params, "trill", False)
+        self.slurEdge = set_param(params, "slur", False)
+        self.voiceEdge = set_param(params, "voice", True)
+        self.velocity = set_param(params, "vel", "50,65")
+        self.device = set_param(params, "dev", 1)
+        self.modelCode = set_param(params, "code", "isgn")
+        self.trillCode = set_param(params, "-tCode", "trill_default")
+        self.composer = set_param(params, "comp", "Beethoven")
+        self.latent = set_param(params, "latent", 0)
+        self.boolPedal = set_param(params, "bp", False)
+        self.trainingLoss = set_param(params, "loss", "MSE")
+        self.resumeTraining = set_param(params, "reTrain", False)
+        self.perfName = set_param(params, "perf", "Anger_sub1")
+        self.deltaLoss = set_param(params, "delta", "test")
+        self.hierCode = set_param(params, "hCode", "han_ar_measure")
+        self.intermediateLoss = set_param(params, "intermd", True)
+        self.randomTrain = set_param(params, "randtr", True)
+        self.disklavier = set_param(params, "dskl", True)
+        self.multi_instruments = set_param(params, "multi", False)       
+
+
+def set_param(params, param, default):
+    if param in params:
+        return params[param]
+    else:
+        return default

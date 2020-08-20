@@ -77,7 +77,7 @@ test_piece_list = [
 #                     # ('dmc_messiaen', 'Debussy', 72)
 #                    ]
 
-emotion_folder_path = 'test_pieces/emotionNet/'
+emotion_folder_path = 'data/test_pieces/emotionNet/'
 emotion_key_list = ['OR', 'Anger', 'Enjoy', 'Relax', 'Sad']
 emotion_data_path  = [('Bach_Prelude_1', 'Bach', 1),
                       ('Clementi_op.36-1_mov3', 'Haydn', 3),

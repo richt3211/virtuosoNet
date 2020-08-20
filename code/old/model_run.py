@@ -6,8 +6,8 @@ import numpy as np
 import shutil
 import os
 import matplotlib
-import code.pyScoreParser.xml_matching as xml_matching
-import code.pyScoreParser.performanceWorm as perf_worm
+import pyScoreParser.xml_matching as xml_matching
+import pyScoreParser.performanceWorm as perf_worm
 import code.data.data_process as dp
 import copy
 import random
@@ -18,54 +18,23 @@ from datetime import datetime
 
 import sys
 
+import os 
+print(os.getcwd())
+print(os.path.abspath('../../../data'))
+
+
 sys.modules['xml_matching'] = xml_matching
 
 matplotlib.use('Agg')
 
-parser = argparse.ArgumentParser()
-parser.add_argument("-mode", "--sessMode", type=str, default='test', help="train or test or testAll")
-parser.add_argument("-path", "--testPath", type=str, default="./test_pieces/bps_5_1/", help="folder path of test mat")
-parser.add_argument("-data", "--dataName", type=str, default="self.training_data", help="dat file name")
-parser.add_argument("--resume", type=str, default="_best.pth.tar", help="best model path")
-parser.add_argument("-tempo", "--startTempo", type=int, default=0, help="start tempo. zero to use xml first tempo")
-parser.add_argument("-trill", "--trainTrill", default=False, type=lambda x: (str(x).lower() == 'true'),
-                    help="train trill")
-parser.add_argument("-slur", "--slurEdge", default=False, type=lambda x: (str(x).lower() == 'true'),
-                    help="slur edge in graph")
-parser.add_argument("-voice", "--voiceEdge", default=True, type=lambda x: (str(x).lower() == 'true'),
-                    help="network in voice level")
-parser.add_argument("-vel", "--velocity", type=str, default='50,65', help="mean velocity of piano and forte")
-parser.add_argument("-dev", "--device", type=int, default=1, help="cuda device number")
-parser.add_argument("-code", "--modelCode", type=str, default='isgn', help="code name for saving the model")
-parser.add_argument("-tCode", "--trillCode", type=str, default='trill_default',
-                    help="code name for loading trill model")
-parser.add_argument("-comp", "--composer", type=str, default='Beethoven', help="composer name of the input piece")
-parser.add_argument("--latent", type=float, default=0, help='initial_z value')
-parser.add_argument("-bp", "--boolPedal", default=False, type=lambda x: (str(x).lower() == 'true'),
-                    help='make pedal value zero under threshold')
-parser.add_argument("-loss", "--trainingLoss", type=str, default='MSE', help='type of training loss')
-parser.add_argument("-reTrain", "--resumeTraining", default=False, type=lambda x: (str(x).lower() == 'true'),
-                    help='resume training after loading model')
-parser.add_argument("-perf", "--perfName", default='Anger_sub1', type=str, help='resume training after loading model')
-parser.add_argument("-delta", "--deltaLoss", default=False, type=lambda x: (str(x).lower() == 'true'),
-                    help="network in voice level")
-parser.add_argument("-hCode", "--hierCode", type=str, default='han_ar_measure',
-                    help="code name for loading hierarchy model")
-parser.add_argument("-intermd", "--intermediateLoss", default=True, type=lambda x: (str(x).lower() == 'true'),
-                    help="intermediate loss in ISGN")
-parser.add_argument("-randtr", "--randomTrain", default=True, type=lambda x: (str(x).lower() == 'true'),
-                    help="use random train")
-parser.add_argument("-dskl", "--disklavier", default=True, type=lambda x: (str(x).lower() == 'true'),
-                    help="save midi for disklavier")
-parser.add_argument("-multi", "--multi_instruments", default=False, type=lambda x: (str(x).lower() == 'true'),
-                    help="save midi for disklavier")
-
+# DATA_DIR = 'data'
 
 class ModelRun():
 
-    def __init__(self, args):
+    def __init__(self, args, data_dir):
         random.seed(0)
 
+        self.DATA_DIR = data_dir
         # self.args = parser.parse_args()
         self.args = args
         self.LOSS_TYPE = self.args.trainingLoss
@@ -133,7 +102,7 @@ class ModelRun():
         is_trill_index_score = -11
         self.is_trill_index_concated = -11 - (self.NUM_PRIME_PARAM + num_second_param)
 
-        with open(self.args.dataName + "_stat.dat", "rb") as f:
+        with open(f'{self.DATA_DIR}/train/{self.args.dataName}_stat.dat', "rb") as f:
             u = pickle._Unpickler(f)
             u.encoding = 'latin1'
             if self.args.trainingLoss == 'CE':
@@ -418,7 +387,8 @@ class ModelRun():
                                                                predicted=True)
         output_midi, midi_pedals = xml_matching.xml_notes_to_midi(output_xml, multi_instruments)
         piece_name = path_name.split('/')
-        save_name = 'test_result/' + piece_name[-2] + '_by_' + self.args.modelCode + '_z' + str(z)
+        save_name = f'{self.DATA_DIR}/test_result/{piece_name[-2]}_by_{self.args.modelCode}_z{str(z)}'
+        # save_name = 'test_result/' + piece_name[-2] + '_by_' + self.args.modelCode + '_z' + str(z)
 
         perf_worm.plot_performance_worm(output_features, save_name + '.png')
         print(f'Saving midi performance to {save_name}')
@@ -725,8 +695,23 @@ class ModelRun():
 
 
     ### training
+    def load_training_data(self):
+        print('Loading the training data...')
+        training_data_name = self.args.dataName + ".dat"
+        training_data_path = f'{self.DATA_DIR}/train/{training_data_name}'
+        if not os.path.isfile(training_data_path):
+            training_data_name = '/mnt/ssd1/jdasam_data/' + training_data_name
+        with open(f'{self.DATA_DIR}/train/{training_data_name}', "rb") as f:
+            u = pickle._Unpickler(f)
+            u.encoding = 'latin1'
+            # p = u.load()
+            # complete_xy = pickle.load(f)
+            complete_xy = u.load()
 
-    def train(self):
+        print('Done loading training data')
+        return complete_xy
+
+    def train(self, complete_xy):
         # if self.args.sessMode == 'train':
         now = datetime.now()
         current_time = now.strftime("%D %I:%M:%S")
@@ -758,17 +743,19 @@ class ModelRun():
                 print('Best valid loss was ', best_prime_loss)
 
         # load data
-        print('Loading the training data...')
-        training_data_name = self.args.dataName + ".dat"
-        if not os.path.isfile(training_data_name):
-            training_data_name = '/mnt/ssd1/jdasam_data/' + training_data_name
-        with open(training_data_name, "rb") as f:
-            u = pickle._Unpickler(f)
-            u.encoding = 'latin1'
-            # p = u.load()
-            # complete_xy = pickle.load(f)
-            complete_xy = u.load()
+        # print('Loading the training data...')
+        # training_data_name = self.args.dataName + ".dat"
+        # training_data_path = f'{self.DATA_DIR}/train/{training_data_name}'
+        # if not os.path.isfile(training_data_path):
+        #     training_data_name = '/mnt/ssd1/jdasam_data/' + training_data_name
+        # with open(f'{self.DATA_DIR}/train/{training_data_name}', "rb") as f:
+        #     u = pickle._Unpickler(f)
+        #     u.encoding = 'latin1'
+        #     # p = u.load()
+        #     # complete_xy = pickle.load(f)
+        #     complete_xy = u.load()
 
+        # print('Done loading training data')
         train_xy = complete_xy['train']
         test_xy = complete_xy['valid']
         print('number of train performances: ', len(train_xy), 'number of valid perf: ', len(test_xy))
@@ -1117,7 +1104,8 @@ class ModelRun():
             test_list = cons.test_piece_list
             print(f'Test pieces: {test_list}')
             for piece in test_list:
-                path = './test_pieces/' + piece[0] + '/'
+                path = f'{self.DATA_DIR}/test_pieces/{piece[0]}/'
+                # path = './data/test_pieces/' + piece[0] + '/'
                 composer = piece[1]
                 if len(piece) == 3:
                     start_tempo = piece[2]
@@ -1129,7 +1117,8 @@ class ModelRun():
         elif self.args.sessMode == 'testAllzero':
             test_list = cons.test_piece_list
             for piece in test_list:
-                path = './test_pieces/' + piece[0] + '/'
+                path = f'{self.DATA_DIR}/test_pieces/{piece[0]}/'
+                # path = './test_pieces/' + piece[0] + '/'
                 composer = piece[1]
                 if len(piece) == 3:
                     start_tempo = piece[2]
@@ -1148,7 +1137,7 @@ class ModelRun():
             test_data_name = self.args.dataName + "_test.dat"
             if not os.path.isfile(test_data_name):
                 test_data_name = '/mnt/ssd1/jdasam_data/' + test_data_name
-            with open(test_data_name, "rb") as f:
+            with open(f'{self.DATA_DIR}/test/{test_data_name}', "rb") as f:
                 u = pickle._Unpickler(f)
                 u.encoding = 'latin1'
                 # p = u.load()
