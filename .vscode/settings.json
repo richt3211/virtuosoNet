@@ -3,6 +3,6 @@
     "python.linting.enabled": true,
     "python.linting.pylintPath": "${workspaceFolder}/env/bin/pylint",
     "python.jediEnabled": false,
-    "python.pythonPath": "/uusoc/exports/scratch/rtimpson/virtuosoNet/env/bin/python",
+    "python.pythonPath": "/Users/richardtimpson/Documents/Research/virtuosoNet/env/bin/python3.6",
     "python.languageServer": "Microsoft"
 }
