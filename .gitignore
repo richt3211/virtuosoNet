@@ -13,4 +13,6 @@ data/train/training_data.dat
 VqzVzJBT
 VqxVzJBT
 .vscode/.ropeproject
+.vscode/settings.json
+**/settings.json
 .env

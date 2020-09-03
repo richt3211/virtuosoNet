@@ -27,12 +27,13 @@
             "name": "Test one",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/model_run.py",
+            "program": "${workspaceFolder}/src/old/model_run_old.py",
             "console": "integratedTerminal",
             "args": [
-                "-mode=testAll",
-                "-code=isgn",
-                "-dev=1"
+                "-mode=test",
+                "-code=han_baseline_ar",
+                "-dev=1",
+                "-path=./data/test_pieces/bps_5_1/"
             ]
         }
     ]

@@ -11,12 +11,12 @@ matplotlib.use('Agg')
 from datetime import datetime
 import pyScoreParser.xml_matching as xml_matching
 import pyScoreParser.performanceWorm as perf_worm
-import code.data.data_process as dp
+import src.old.data_process as dp
 import copy
 import random
-import code.models.nnModel as nnModel
-import code.models.model_parameters as param
-import code.models.model_constants as cons
+import src.old.nnModel as nnModel
+import src.old.model_parameters as param
+import src.old.model_constants as cons
 import sys
 sys.modules['xml_matching'] = xml_matching
 
@@ -114,8 +114,10 @@ num_dynamic_info = 0 # distance from marking, dynamics vector 4, mean_piano, for
 is_trill_index_score = -11
 is_trill_index_concated = -11 - (NUM_PRIME_PARAM + num_second_param)
 
+DATA_DIR = "./data"
+MODEL_DIR = "./models"
 
-with open(args.dataName + "_stat.dat", "rb") as f:
+with open(f'{DATA_DIR}/train/{args.dataName}_stat.dat', "rb") as f:
     u = pickle._Unpickler(f)
     u.encoding = 'latin1'
     if args.trainingLoss == 'CE':
@@ -153,6 +155,8 @@ batch_size = 1
 torch.cuda.set_device(args.device)
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+model_name_path = f'{MODEL_DIR}/{args.modelCode}_param'
+trill_name_path = f'{MODEL_DIR}/{args.trillCode}_param'
 if args.sessMode == 'train' and not args.resumeTraining:
     NET_PARAM = param.initialize_model_parameters_by_code(args.modelCode)
     NET_PARAM.num_edge_types = N_EDGE_TYPE
@@ -161,8 +165,8 @@ if args.sessMode == 'train' and not args.resumeTraining:
 elif args.resumeTraining:
     NET_PARAM = param.load_parameters(args.modelCode + '_param')
 else:
-    NET_PARAM = param.load_parameters(args.modelCode + '_param')
-    TrillNET_Param = param.load_parameters(args.trillCode + '_param')
+    NET_PARAM = param.load_parameters(model_name_path)
+    TrillNET_Param = param.load_parameters(trill_name_path)
     # if not hasattr(NET_PARAM, 'num_edge_types'):
     #     NET_PARAM.num_edge_types = 10
     # if not hasattr(TrillNET_Param, 'num_edge_types'):

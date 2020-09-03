@@ -8,12 +8,12 @@ import os
 import matplotlib
 import pyScoreParser.xml_matching as xml_matching
 import pyScoreParser.performanceWorm as perf_worm
-import code.data.data_process as dp
+import src.old.data_process as dp
 import copy
 import random
-from code.models import nnModel
-import code.models.model_parameters as param
-import code.models.model_constants as cons
+from src.old import nnModel
+import src.old.model_parameters as param
+import src.old.model_constants as cons
 from datetime import datetime
 
 import sys

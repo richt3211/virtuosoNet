@@ -6,7 +6,7 @@ from torch.autograd import Variable
 import random
 import numpy
 import math
-from code.models import model_constants as cons
+from src.old import model_constants as cons
 # import model_constants as cons
 
 
