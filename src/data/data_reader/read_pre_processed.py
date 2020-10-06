@@ -1,4 +1,5 @@
 import os 
+import traceback
 from pyScoreParser import dataset_split as split
 from pyScoreParser.data_generation import get_piece_pairs
 
@@ -15,6 +16,7 @@ def get_train_val_test_lists(path):
         for f in filenames:
             if f == "midi_cleaned.mid":
                 midi_file = dp.replace(path, "")
+                midi_file = midi_file + "/"
                 midi_list.append(midi_file)
 
     train_list = [os.path.join(path,f) for f in midi_list if f not in VALID_LIST and f not in TEST_LIST]
@@ -31,15 +33,18 @@ def load_limited_subfolder(path, data_split, minimum_perform_limit):
 
 def load_entire_subfolder(path, minimum_perform_limit=0):
     (train_list, valid_list, test_list) = get_train_val_test_lists(path)
-
+    print(f'Length of training list: {len(train_list)}')
     return load_lists(train_list, valid_list, test_list, minimum_perform_limit)
 
 def load_lists(train_list, valid_list, test_list, minimum_perform_limit):
-    # display(train_list)
+    print(f'Length of training list: {len(train_list)}')
     entire_pairs = []
     try: 
+        print('getting the training list')
         (entire_pairs, num_train_pairs) = get_piece_pairs(train_list, minimum_perform_limit, entire_pairs)
+        print('getting the validation list')
         (entire_pairs, num_valid_pairs) = get_piece_pairs(valid_list, minimum_perform_limit, entire_pairs)
+        print('getting the test list')
         (entire_pairs, num_test_pairs) = get_piece_pairs(test_list, minimum_perform_limit, entire_pairs)
     except: 
             print()

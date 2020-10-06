@@ -2,7 +2,7 @@ import pickle
 import os 
 
 REGRESSION = True
-ROOT_DIR = os.environ['ROOT_DIR']
+# ROOT_DIR = os.environ['ROOT_DIR']
 
 
 def write_featurized_form_to_cache(data, stats, file_path):

@@ -16,3 +16,6 @@ VqxVzJBT
 .vscode/settings.json
 **/settings.json
 .env
+**/training_data.pickle
+**/training_data_test.pickle
+**/training_data_stat.pickle
