@@ -5,8 +5,10 @@ import torch.optim as optim
 import time
 from torch.autograd import Variable
 import random
-import numpy
+import numpy as np
 import math
+
+from torch.tensor import Tensor
 from src.old import model_constants as cons
 from src.old.nnModel import ContextAttention
 
@@ -22,7 +24,11 @@ QPM_PRIMO_IDX = 4
 TEMPO_PRIMO_IDX = -2
 NUM_VOICE_FEED_PARAM = 2
 
-class LSTM_Baseline(nn.Module):
+
+NUM_PRIME_PARAM = 11
+
+
+class LSTMBaseline(nn.Module):
     # def __init__(self, network_parameters, device, step_by_step=False):
     #     super(HAN_Integrated, self).__init__()
 
@@ -34,66 +40,57 @@ class LSTM_Baseline(nn.Module):
 
         self.lstm = nn.LSTM(self.input_size, self.output_size)
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor):
         lstm_out, _ = self.lstm(x.view(len(x), 1, -1))
         return lstm_out
 
 
-# spits out a trained model using a very simple LSTM
-def train_model(data, model):
-    loss_function = nn.MSELoss()
-    optimizer = optim.SGD(model.parameters(), lr=0.1)
+class HANBaselineHyperParams():
+    def __init__(self):
+        beat_size = 64
+        measure_size = 64
+        voice_size = 64
+        num_tempo_info = 3
+        num_dynamic_info = 0
 
-    for epoch in range(10):
-        for xy_tuple in data['train']:
-            x = xy_tuple[0]
-            y = xy_tuple[1]
-            # align_matched = xy_tuple[3]
-            # pedal_status = xy_tuple[4]
-            # edges = xy_tuple[5]
+        self.input_size = 78
+        self.hidden_size = 64
+        self.num_layers = 2
 
-            input = torch.tensor(x, dtype=torch.float)
-            target = torch.tensor(y, dtype=torch.float)
-            pred = model(input)
+        self.encoder_size = 32
+        self.encoder_layer_num = 2
+        self.encoded_vector_size = 16        
+        self.encoder_input_size = (self.hidden_size + beat_size + measure_size + voice_size) * 2 + NUM_PRIME_PARAM
 
-            loss = loss_function(pred, target)
-            print(f'Loss is: {loss}')
-            loss.backward()
-            optimizer.step()
+        self.num_attention_head = 8
 
-    # output the validation loss
-    with torch.no_grad():
-        for xy_tuple in data['valid']:
-            x = xy_tuple[0]
-            y = xy_tuple[1]
-            # align_matched = xy_tuple[3]
-            # pedal_status = xy_tuple[4]
-            # edges = xy_tuple[5]
+        self.final_hidden_size = 64
+        self.final_input = (self.hidden_size + voice_size + beat_size +
+                                 measure_size) * 2 + self.encoder_size + \
+                                num_tempo_info + num_dynamic_info
 
-            input = torch.tensor(x, dtype=torch.float)
-            target = torch.tensor(y, dtype=torch.float)
-            pred = model(input)
+        self.step_by_step = True
+        self.drop_out = 0.1
 
-            loss = loss_function(pred, target)
-            print(f'Validation Loss is: {loss}')
-
-    return model
-
-class LSTM_BaselineAdvanced(nn.Module):
-    def __init__(self, hyper_params):
+class HAN_Baseline(nn.Module):
+    def __init__(self, hyper_params: HANBaselineHyperParams):
         super().__init__()
+        self.input_size = hyper_params.input_size 
         self.hidden_size = hyper_params.hidden_size 
         self.num_layers = hyper_params.num_layers 
-        self.drop_out = hyper_params.drop_out
-        self.input_size = hyper_params.input_size 
-        self.final_input = hyper_params.final_input 
-        self.final_hidden_size = hyper_params.final_hidden_size
-        self.encoder_size = hyper_params.encoder_size 
+
         self.encoder_input_size = hyper_params.encoder_input_size
+        self.encoder_size = hyper_params.encoder_size 
         self.encoder_layer_num = hyper_params.encoder_layer_num
         self.encoded_vector_size = hyper_params.encoded_vector_size
+
         self.num_attention_head = hyper_params.num_attention_head
+
+        self.final_hidden_size = hyper_params.final_hidden_size
+        self.final_input = hyper_params.final_input 
+
         self.step_by_step = hyper_params.step_by_step
+        self.drop_out = hyper_params.drop_out
 
         self.lstm = nn.LSTM(self.hidden_size, self.hidden_size, self.num_layers, batch_first=True, bidirectional=True, dropout=self.drop_out)
 
@@ -185,32 +182,36 @@ class LSTM_BaselineAdvanced(nn.Module):
 
             return mean_perform_z
 
+        perform_z = self.style_vector_expandor(perform_z)
+        perform_z_batched = perform_z.repeat(x.shape[1], 1).view(1,x.shape[1], -1)
+        perform_z = perform_z.view(-1)
+
+
         final_hidden = self.init_hidden(1, 1, x.size(0), self.final_hidden_size)
         
-        if self.step_by_step:
-            qpm_primo = x[:, 0, QPM_PRIMO_IDX]
-            tempo_primo = x[0, 0, TEMPO_PRIMO_IDX:]
+        qpm_primo = x[:, 0, QPM_PRIMO_IDX]
+        tempo_primo = x[0, 0, TEMPO_PRIMO_IDX:]
 
-            prev_out = torch.zeros(self.output_size).to(self.device)
-            prev_tempo = prev_out[QPM_INDEX:QPM_INDEX+1]
-            prev_beat = -1
-            prev_beat_end = 0
-            out_total = torch.zeros(num_notes, self.output_size).to(self.device)
-            prev_out_list = []
-            has_ground_truth = y.size(1) > 1
-            for i in range(num_notes):
-                out_combined = torch.cat((note_out[0, i, :], prev_out, qpm_primo, tempo_primo, perform_z)).view(1, 1, -1)
-                out, final_hidden = self.output_lstm(out_combined, final_hidden)
+        prev_out = torch.zeros(self.output_size).to(self.device)
+        prev_tempo = prev_out[QPM_INDEX:QPM_INDEX+1]
+        prev_beat = -1
+        prev_beat_end = 0
+        out_total = torch.zeros(num_notes, self.output_size).to(self.device)
+        prev_out_list = []
+        has_ground_truth = y.size(1) > 1
+        for i in range(num_notes):
+            out_combined = torch.cat((note_out[0, i, :], prev_out, qpm_primo, tempo_primo, perform_z)).view(1, 1, -1)
+            out, final_hidden = self.output_lstm(out_combined, final_hidden)
 
-                out = out.view(-1)
-                out = self.fc(out)
+            out = out.view(-1)
+            out = self.fc(out)
 
-                prev_out_list.append(out)
-                prev_out = out
-                out_total[i, :] = out
-            out_total = out_total.view(1, num_notes, -1)
-            return out_total, perform_mu, perform_var, note_out
-
+            prev_out_list.append(out)
+            prev_out = out
+            out_total[i, :] = out
+        out_total = out_total.view(1, num_notes, -1)
+        return out_total, perform_mu, perform_var, note_out
+        
 
     def reparameterize(self, mu, logvar):
         std = torch.exp(0.5*logvar)
