@@ -2,11 +2,13 @@ import torch
 import torch.nn as nn 
 import torch.optim as optim
 import numpy as np
+import logging
 
 VEL_PARAM_IDX = 1
 DEV_PARAM_IDX = 2
 ARTICUL_LOSS_IDX = 3
 PEDAL_PARAM_IDX = 4
+
 
 def train_model(data, model, epochs):
     loss_function = nn.MSELoss()
@@ -30,8 +32,8 @@ def train_model(data, model, epochs):
     }
     validation_total_loss = []
     for epoch in range(epochs):
-        print(f'Training for epoch {epoch+1}/{epochs}')
-        print()
+        logging.info(f'Training for epoch {epoch+1}/{epochs}')
+        logging.info("")
         for xy_tuple in data['train']:
             x = xy_tuple[0]
             y = xy_tuple[1]
@@ -46,7 +48,7 @@ def train_model(data, model, epochs):
             loss.backward()
             optimizer.step()
 
-        print("Training Loss")
+        logging.info("Training Loss")
         print_loss(feature_loss, total_loss)
 
 
@@ -63,14 +65,15 @@ def train_model(data, model, epochs):
                 target = transform_target(y)
                 calculate_loss(pred, target, validation_total_loss, validation_feature_loss, loss_function)
 
-        print("Validation Loss and Evaluation")
+        logging.info("Validation Loss and Evaluation")
         print_loss(validation_feature_loss, validation_total_loss)
-        print()
+        logging.info("")
     return model
 
 def transform_target(y):
     target = torch.tensor(y, dtype=torch.float)
     target = target.view(len(y), 1, -1)
+    target = target[:, :, 0:11]
     return target 
 
 def model_inference(model, x):
@@ -99,8 +102,9 @@ def calculate_loss(pred, target, total_loss, feature_loss, loss_function):
     return loss
 
 def print_loss(feature_loss, loss):
-    print(f'\tTotal Loss: {np.mean(loss)}')
-    print('\t', end="")
+    logging.info(f'Total Loss: {np.mean(loss)}')
+    loss_string = "\t"
     for key, value in feature_loss.items():
-        print(f'{key} loss: {np.mean(value):.4} ', end="")
-    print()
+        loss_string += f'{key}: {np.mean(value):.4} '
+    logging.info(loss_string)
+    logging.info("")

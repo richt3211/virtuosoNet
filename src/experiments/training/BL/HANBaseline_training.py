@@ -2,11 +2,14 @@
 
 from datetime import datetime
 from src.experiments.training.model_run_job import ModelRun
+from src.models.BL import HANBaseline, HANBaselineHyperParams
 import src.old.data_process as dp
 import math 
 import random 
 import torch 
 import copy
+import numpy as np
+import logging
 
 class HANBaselineModelRun(ModelRun):
 
@@ -15,7 +18,11 @@ class HANBaselineModelRun(ModelRun):
         self.num_input = 78
         self.num_output = 11
         self.num_prime_param = 11
-        
+        self.num_tempo_param = 1
+
+        self.qpm_index = 0
+        self.valid_steps = 5000
+
         self.num_updated = 0
         self.time_steps = 500
         self.batch_size = 1
@@ -24,61 +31,33 @@ class HANBaselineModelRun(ModelRun):
 
         self.kld_sig = 20e4
         self.kld_max = 0.01
+        self.kld_weight = 0
 
         self.learning_rate = 0.003
         self.weight_decay = 1e-5
         self.grad_clip = 5
 
-        self.feature_loss_init = {
-                'tempo': {
-                    'name': 'Tempo',
-                    'values': []
-                },
-                'vel': {
-                    'name': 'Velocity',
-                    'values': []
-                },
-                'dev': {
-                    'name': 'Deviation',
-                    'values': []
-                },
-                'articul': {
-                    'name': 'Articulation',
-                    'values': []
-                },
-                'pedal': {
-                    'name': 'Pedal',
-                    'values': []
-                },
-                'trill': {
-                    'name': 'Trill',
-                    'values': []
-                },
-                'kld': {
-                    'name': 'KLD',
-                    'values': []
-                }
-            }
 
-
-    def sigmoid(x, gain=1):
+    def sigmoid(self, x, gain=1):
         return 1 / (1 + math.exp(-gain*x))
 
     def train(self, model, data, num_epochs):
         self.optimizer = torch.optim.Adam(model.parameters(), lr=self.learning_rate, weight_decay=self.weight_decay)
         now = datetime.now()
         current_time = now.strftime("%D %I:%M:%S")
-        print(f'Starting training job at {current_time}')
+        logging.info(f'Starting training job at {current_time}')
 
 
         train_xy = data['train']
         valid_xy = data['valid']
         for epoch in range(num_epochs):
-            print(f'Training Epoch {epoch + 1}')
+            logging.info(f'Training Epoch {epoch + 1}')
+            logging.info("")
             # print('current training step is ', NUM_UPDATED)
             
 
             feature_loss = copy.deepcopy(self.feature_loss_init)
+            total_loss = []
             for xy_tuple in train_xy:
                 train_x = xy_tuple[0]
                 train_y = xy_tuple[1]
@@ -107,15 +86,15 @@ class HANBaselineModelRun(ModelRun):
                     key = key_lists[i]
                     temp_train_x = dp.key_augmentation(train_x, key)
                     slice_indexes = dp.make_slicing_indexes_by_measure(data_size, measure_numbers, steps=self.time_steps)
-                    kld_weight = self.sigmoid((self.num_updated - self.kld_sig) / (self.kld_sig/10)) * self.kld_max
+                    self.kld_weight = self.sigmoid((self.num_updated - self.kld_sig) / (self.kld_sig/10)) * self.kld_max
 
                     for slice_idx in slice_indexes:
                         training_data = {'x': temp_train_x, 'y': train_y, 'graphs': graphs,
                                          'note_locations': note_locations,
                                          'align_matched': align_matched, 'pedal_status': pedal_status,
-                                         'slice_idx': slice_idx, 'kld_weight': kld_weight}
+                                         'slice_idx': slice_idx, 'kld_weight': self.kld_weight}
 
-                        tempo_loss, vel_loss, dev_loss, articul_loss, pedal_loss, trill_loss, kld = \
+                        tempo_loss, vel_loss, dev_loss, articul_loss, pedal_loss, trill_loss, kld, loss = \
                             self.batch_time_step_run(training_data, model=model)
                         feature_loss['tempo'].append(tempo_loss.item())
                         feature_loss['vel'].append(vel_loss.item())
@@ -124,14 +103,16 @@ class HANBaselineModelRun(ModelRun):
                         feature_loss['pedal'].append(pedal_loss.item())
                         feature_loss['trill'].append(trill_loss.item())
                         feature_loss['kld'].append(kld.item())
+
+                        total_loss.append(loss.item())
                         self.num_updated += 1
 
-            print('Training Loss')
-            self.print_loss(feature_loss)
+            logging.info('Training Loss')
+            self.print_loss(feature_loss, total_loss)
 
                     ## Validation
             validation_feature_loss = copy.deepcopy(self.feature_loss_init)
-
+            validation_loss = []
             for xy_tuple in valid_xy:
                 test_x = xy_tuple[0]
                 test_y = xy_tuple[1]
@@ -144,69 +125,76 @@ class HANBaselineModelRun(ModelRun):
 
                 batch_x, batch_y = self.handle_data_in_tensor(test_x, test_y)
                 batch_x = batch_x.view(1, -1, self.num_input)
-                batch_y = batch_y.view(1, -1, self.num_outpute)
+                batch_y = batch_y.view(1, -1, self.num_output)
                 # input_y = torch.Tensor(prev_feature).view((1, -1, TOTAL_OUTPUT)).to(DEVICE)
                 align_matched = torch.Tensor(align_matched).view(1, -1, 1).to(self.device)
                 pedal_status = torch.Tensor(pedal_status).view(1,-1,1).to(self.device)
-                outputs, total_z = run_model_in_steps(batch_x, batch_y, graphs, note_locations)
+                outputs, total_z = self.run_model_in_steps(batch_x, batch_y, graphs, note_locations, model)
 
                 # valid_loss = criterion(outputs[:,:,NUM_TEMPO_PARAM:-num_trill_param], batch_y[:,:,NUM_TEMPO_PARAM:-num_trill_param], align_matched)
 
-                tempo_loss = cal_tempo_loss_in_beat(outputs, batch_y, note_locations, 0)
-                vel_loss = criterion(outputs[:, :, VEL_PARAM_IDX], batch_y[:, :, VEL_PARAM_IDX], align_matched)
-                deviation_loss = criterion(outputs[:, :, DEV_PARAM_IDX], batch_y[:, :, DEV_PARAM_IDX], align_matched)
-                articul_loss = criterion(outputs[:, :, PEDAL_PARAM_IDX], batch_y[:, :, PEDAL_PARAM_IDX], pedal_status)
-                pedal_loss = criterion(outputs[:, :, PEDAL_PARAM_IDX+1:], batch_y[:, :, PEDAL_PARAM_IDX+1:], align_matched)
+                tempo_loss = self.cal_tempo_loss_in_beat(outputs, batch_y, note_locations, 0)
+                vel_loss = self.criterion(outputs[:, :, self.vel_param_idx], batch_y[:, :, self.vel_param_idx], align_matched)
+                deviation_loss = self.criterion(outputs[:, :, self.dev_param_idx], batch_y[:, :, self.dev_param_idx], align_matched)
+                articul_loss = self.criterion(outputs[:, :, self.articul_param_idx], batch_y[:, :, self.articul_param_idx], pedal_status)
+                pedal_loss = self.criterion(outputs[:, :, self.pedal_param_idx:], batch_y[:, :, self.pedal_param_idx:], align_matched)
                 trill_loss = torch.zeros(1)
                 for z in total_z:
                     perform_mu, perform_var = z
                     kld_loss = -0.5 * torch.sum(1 + perform_var - perform_mu.pow(2) - perform_var.exp())
-                    kld_loss_total.append(kld_loss.item())
+                    validation_feature_loss['kld'].append(kld_loss.item())
 
                 # valid_loss_total.append(valid_loss.item())
-                tempo_loss_total.append(tempo_loss.item())
-                vel_loss_total.append(vel_loss.item())
-                deviation_loss_total.append(deviation_loss.item())
-                articul_loss_total.append(articul_loss.item())
-                pedal_loss_total.append(pedal_loss.item())
-                trill_loss_total.append(trill_loss.item())
+                validation_feature_loss['tempo'].append(tempo_loss.item())
+                validation_feature_loss['vel'].append(vel_loss.item())
+                validation_feature_loss['dev'].append(deviation_loss.item())
+                validation_feature_loss['articul'].append(articul_loss.item())
+                validation_feature_loss['pedal'].append(pedal_loss.item())
+                validation_feature_loss['trill'].append(trill_loss.item())
 
-            mean_tempo_loss = np.mean(tempo_loss_total)
-            mean_vel_loss = np.mean(vel_loss_total)
-            mean_deviation_loss = np.mean(deviation_loss_total)
-            mean_articul_loss = np.mean(articul_loss_total)
-            mean_pedal_loss = np.mean(pedal_loss_total)
-            mean_trill_loss = np.mean(trill_loss_total)
-            mean_kld_loss = np.mean(kld_loss_total)
+                loss = (tempo_loss + vel_loss + deviation_loss + articul_loss + pedal_loss * 7 + kld_loss * self.kld_weight) / (11 + self.kld_weight)
 
-            mean_valid_loss = (mean_tempo_loss + mean_vel_loss + mean_deviation_loss + mean_articul_loss + mean_pedal_loss * 7 + mean_kld_loss * kld_weight) / (11 + kld_weight)
+                validation_loss.append(loss.item())
 
-            print("Valid Loss= {:.4f} , Tempo: {:.4f}, Vel: {:.4f}, Deviation: {:.4f}, Articulation: {:.4f}, Pedal: {:.4f}, Trill: {:.4f}"
-                .format(mean_valid_loss, mean_tempo_loss , mean_vel_loss,
-                        mean_deviation_loss, mean_articul_loss, mean_pedal_loss, mean_trill_loss))
+            # mean_tempo_loss = np.mean(validation_feature_loss['tempo'])
+            # mean_vel_loss = np.mean(validation_feature_loss['vel'])
+            # mean_deviation_loss = np.mean(validation_feature_loss['dev'])
+            # mean_articul_loss = np.mean(validation_feature_loss['articul'])
+            # mean_pedal_loss = np.mean(validation_feature_loss['pedal'])
+            # mean_trill_loss = np.mean(validation_feature_loss['trill'])
+            # mean_kld_loss = np.mean(validation_feature_loss['kld'])
 
-            is_best = mean_valid_loss < best_prime_loss
-            best_prime_loss = min(mean_valid_loss, best_prime_loss)
+            # mean_valid_loss = (mean_tempo_loss + mean_vel_loss + mean_deviation_loss + mean_articul_loss + mean_pedal_loss * 7 + mean_kld_loss * kld_weight) / (11 + kld_weight)
 
-            is_best_trill = mean_trill_loss < best_trill_loss
-            best_trill_loss = min(mean_trill_loss, best_trill_loss)
+            logging.info('Validation loss')
+            self.print_loss(validation_feature_loss, validation_loss)
+            logging.info("")
+            # print("Valid Loss= {:.4f} , Tempo: {:.4f}, Vel: {:.4f}, Deviation: {:.4f}, Articulation: {:.4f}, Pedal: {:.4f}, Trill: {:.4f}"
+            #     .format(mean_valid_loss, mean_tempo_loss , mean_vel_loss,
+            #             mean_deviation_loss, mean_articul_loss, mean_pedal_loss, mean_trill_loss))
 
-            if args.trainTrill:
-                save_checkpoint({
-                    'epoch': epoch + 1,
-                    'state_dict': MODEL.state_dict(),
-                    'best_valid_loss': best_trill_loss,
-                    'optimizer': optimizer.state_dict(),
-                    'training_step': NUM_UPDATED
-                }, is_best_trill, model_name='trill')
-            else:
-                save_checkpoint({
-                    'epoch': epoch + 1,
-                    'state_dict': MODEL.state_dict(),
-                    'best_valid_loss': best_prime_loss,
-                    'optimizer': optimizer.state_dict(),
-                    'training_step': NUM_UPDATED
-                }, is_best, model_name='prime')
+            # is_best = mean_valid_loss < best_prime_loss
+            # best_prime_loss = min(mean_valid_loss, best_prime_loss)
+
+            # is_best_trill = mean_trill_loss < best_trill_loss
+            # best_trill_loss = min(mean_trill_loss, best_trill_loss)
+
+            # if args.trainTrill:
+            #     save_checkpoint({
+            #         'epoch': epoch + 1,
+            #         'state_dict': MODEL.state_dict(),
+            #         'best_valid_loss': best_trill_loss,
+            #         'optimizer': optimizer.state_dict(),
+            #         'training_step': NUM_UPDATED
+            #     }, is_best_trill, model_name='trill')
+            # else:
+            #     save_checkpoint({
+            #         'epoch': epoch + 1,
+            #         'state_dict': MODEL.state_dict(),
+            #         'best_valid_loss': best_prime_loss,
+            #         'optimizer': optimizer.state_dict(),
+            #         'training_step': NUM_UPDATED
+            #     }, is_best, model_name='prime')
 
 
     def batch_time_step_run(self, data, model):
@@ -229,16 +217,11 @@ class HANBaselineModelRun(ModelRun):
             = model_train(prime_batch_x, prime_batch_y, edges, data['note_locations'], batch_start)
 
 
-        tempo_loss = self.criterion(outputs[:, :, 0:1],
-                                prime_batch_y[:, :, 0:1], align_matched)
-        vel_loss = self.criterion(outputs[:, :, self.vel_param_idx:self.dev_param_idx],
-                            prime_batch_y[:, :, self.vel_param_idx:self.dev_param_idx], align_matched)
-        dev_loss = self.criterion(outputs[:, :, self.dev_param_idx:self.articul_param_idx],
-                            prime_batch_y[:, :, self.dev_param_idx:self.articul_param_idx], align_matched)
-        articul_loss = self.criterion(outputs[:, :, self.articul_param_idx:self.pedal_param_idx],
-                                prime_batch_y[:, :, self.articul_param_idx:self.pedal_param_idx], pedal_status)
-        pedal_loss = self.criterion(outputs[:, :, self.pedal_param_idx:], prime_batch_y[:, :, self.pedal_param_idx:],
-                            align_matched)
+        tempo_loss = self.criterion(outputs[:, :, 0:1], prime_batch_y[:, :, 0:1], align_matched)
+        vel_loss = self.criterion(outputs[:, :, self.vel_param_idx:self.dev_param_idx], prime_batch_y[:, :, self.vel_param_idx:self.dev_param_idx], align_matched)
+        dev_loss = self.criterion(outputs[:, :, self.dev_param_idx:self.articul_param_idx], prime_batch_y[:, :, self.dev_param_idx:self.articul_param_idx], align_matched)
+        articul_loss = self.criterion(outputs[:, :, self.articul_param_idx:self.pedal_param_idx], prime_batch_y[:, :, self.articul_param_idx:self.pedal_param_idx], pedal_status)
+        pedal_loss = self.criterion(outputs[:, :, self.pedal_param_idx:], prime_batch_y[:, :, self.pedal_param_idx:], align_matched)
         total_loss = (tempo_loss + vel_loss + dev_loss + articul_loss + pedal_loss * 7) / 11
 
         if isinstance(perform_mu, bool):
@@ -251,26 +234,26 @@ class HANBaselineModelRun(ModelRun):
         torch.nn.utils.clip_grad_norm_(model.parameters(), self.grad_clip)
         self.optimizer.step()
 
-        return tempo_loss, vel_loss, dev_loss, articul_loss, pedal_loss, torch.zeros(1), perform_kld
+        return tempo_loss, vel_loss, dev_loss, articul_loss, pedal_loss, torch.zeros(1), perform_kld, total_loss
 
         # loss = criterion(outputs, batch_y)
         # tempo_loss = criterion(prime_outputs[:, :, 0], prime_batch_y[:, :, 0])
 
-    def run_model_in_steps(self, input, input_y, edges, note_locations, model, initial_z=False):
+    def run_model_in_steps(self, input, input_y, edges, note_locations, model: HANBaseline, initial_z=False):
         num_notes = input.shape[1]
         with torch.no_grad():  # no need to track history in validation
             model_eval = model.eval()
             total_output = []
             total_z = []
             measure_numbers = [x.measure for x in note_locations]
-            slice_indexes = dp.make_slicing_indexes_by_measure(num_notes, measure_numbers, steps=VALID_STEPS, overlap=False)
+            slice_indexes = dp.make_slicing_indexes_by_measure(num_notes, measure_numbers, steps=self.valid_steps, overlap=False)
             # if edges is not None:
             #     edges = edges.to(DEVICE)
 
             for slice_idx in slice_indexes:
                 batch_start, batch_end = slice_idx
                 if edges is not None:
-                    batch_graph = edges[:, batch_start:batch_end, batch_start:batch_end].to(DEVICE)
+                    batch_graph = edges[:, batch_start:batch_end, batch_start:batch_end].to(self.device)
                 else:
                     batch_graph = None
                 
@@ -301,5 +284,50 @@ class HANBaselineModelRun(ModelRun):
         if target.shape != pred.shape:
             print('Error: The shape of the target and prediction for the loss calculation is different')
             print(target.shape, pred.shape)
-            return torch.zeros(1).to(DEVICE)
+            return torch.zeros(1).to(self.device)
         return torch.sum(((target - pred) ** 2) * aligned_status) / data_size
+
+    def cal_tempo_loss_in_beat(self, pred_x, true_x, note_locations, start_index):
+        previous_beat = -1
+
+        num_notes = pred_x.shape[1]
+        start_beat = note_locations[start_index].beat
+        num_beats = note_locations[num_notes+start_index-1].beat - start_beat + 1
+
+        pred_beat_tempo = torch.zeros([num_beats, self.num_tempo_param]).to(self.device)
+        true_beat_tempo = torch.zeros([num_beats, self.num_tempo_param]).to(self.device)
+        for i in range(num_notes):
+            current_beat = note_locations[i+start_index].beat
+            if current_beat > previous_beat:
+                previous_beat = current_beat
+                for j in range(i, num_notes):
+                    if note_locations[j+start_index].beat > current_beat:
+                        break
+                if not i == j:
+                    pred_beat_tempo[current_beat - start_beat] = torch.mean(pred_x[0, i:j, self.qpm_index])
+                    true_beat_tempo[current_beat - start_beat] = torch.mean(true_x[0, i:j, self.qpm_index])
+
+        tempo_loss = self.criterion(pred_beat_tempo, true_beat_tempo)
+        # if args.deltaLoss and pred_beat_tempo.shape[0] > 1:
+        #     prediction_delta = pred_beat_tempo[1:] - pred_beat_tempo[:-1]
+        #     true_delta = true_beat_tempo[1:] - true_beat_tempo[:-1]
+        #     delta_loss = criterion(prediction_delta, true_delta)
+
+        #     tempo_loss = (tempo_loss + delta_loss * DELTA_WEIGHT) / (1 + DELTA_WEIGHT)
+
+        return tempo_loss
+
+def run_han_bl_job(data, num_epochs, dataset_type):
+    try:
+        logging.info(f"STARTING TRAINING JOB AT {num_epochs} EPOCHS FOR {dataset_type} DATA SET")
+        device = 1
+
+        hyper_params = HANBaselineHyperParams()
+        model = HANBaseline(hyper_params, device).to(device)
+        
+        job = HANBaselineModelRun(device)
+        job.train(model, data, num_epochs)
+        logging.info(f'FINISHED TRAINING JOB AT {num_epochs} EPOCHS FOR {dataset_type} DATA SET')
+    except Exception as e:
+        logging.exception("Error during training")
+        raise e

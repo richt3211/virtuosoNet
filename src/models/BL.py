@@ -7,6 +7,7 @@ from torch.autograd import Variable
 import random
 import numpy as np
 import math
+import logging
 
 from torch.tensor import Tensor
 from src.old import model_constants as cons
@@ -36,7 +37,7 @@ class LSTMBaseline(nn.Module):
         super().__init__()
 
         self.input_size = 78
-        self.output_size = 20 
+        self.output_size = 11
 
         self.lstm = nn.LSTM(self.input_size, self.output_size)
 
@@ -60,21 +61,23 @@ class HANBaselineHyperParams():
         self.encoder_size = 32
         self.encoder_layer_num = 2
         self.encoded_vector_size = 16        
-        self.encoder_input_size = (self.hidden_size + beat_size + measure_size + voice_size) * 2 + NUM_PRIME_PARAM
+        self.encoder_input_size = self.hidden_size * 2 + NUM_PRIME_PARAM
+
+        self.output_size = NUM_PRIME_PARAM
 
         self.num_attention_head = 8
 
         self.final_hidden_size = 64
-        self.final_input = (self.hidden_size + voice_size + beat_size +
-                                 measure_size) * 2 + self.encoder_size + \
-                                num_tempo_info + num_dynamic_info
+        self.final_input = self.hidden_size * 2 + self.encoder_size + num_tempo_info + num_dynamic_info + self.output_size
 
         self.step_by_step = True
         self.drop_out = 0.1
 
-class HAN_Baseline(nn.Module):
-    def __init__(self, hyper_params: HANBaselineHyperParams):
+class HANBaseline(nn.Module):
+    def __init__(self, hyper_params: HANBaselineHyperParams, device):
         super().__init__()
+        self.device = device
+
         self.input_size = hyper_params.input_size 
         self.hidden_size = hyper_params.hidden_size 
         self.num_layers = hyper_params.num_layers 
@@ -88,6 +91,8 @@ class HAN_Baseline(nn.Module):
 
         self.final_hidden_size = hyper_params.final_hidden_size
         self.final_input = hyper_params.final_input 
+
+        self.output_size = hyper_params.output_size
 
         self.step_by_step = hyper_params.step_by_step
         self.drop_out = hyper_params.drop_out
@@ -107,6 +112,8 @@ class HAN_Baseline(nn.Module):
         )
 
         self.output_lstm = nn.LSTM(self.final_input, self.final_hidden_size, num_layers=1, batch_first=True, bidirectional=False)
+        self.fc = nn.Linear(self.final_hidden_size, self.output_size)
+
         self.performance_note_encoder = nn.LSTM(self.encoder_size, self.encoder_size, bidirectional=True)
 
         if self.encoder_size % self.num_attention_head == 0:
