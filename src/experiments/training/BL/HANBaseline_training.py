@@ -3,6 +3,8 @@
 from datetime import datetime
 from src.experiments.training.model_run_job import ModelRun
 from src.models.BL import HANBaseline, HANBaselineHyperParams
+from src.discord_bot import sendToDiscord
+
 import src.old.data_process as dp
 import math 
 import random 
@@ -13,8 +15,8 @@ import logging
 
 class HANBaselineModelRun(ModelRun):
 
-    def __init__(self, device):
-        super().__init__(device)
+    def __init__(self, device, is_dev):
+        super().__init__(device, is_dev)
         self.num_input = 78
         self.num_output = 11
         self.num_prime_param = 11
@@ -38,23 +40,23 @@ class HANBaselineModelRun(ModelRun):
         self.grad_clip = 5
 
 
+
     def sigmoid(self, x, gain=1):
         return 1 / (1 + math.exp(-gain*x))
 
-    def train(self, model, data, num_epochs):
+    def train(self, model, data, num_epochs, version):
         self.optimizer = torch.optim.Adam(model.parameters(), lr=self.learning_rate, weight_decay=self.weight_decay)
         now = datetime.now()
         current_time = now.strftime("%D %I:%M:%S")
         logging.info(f'Starting training job at {current_time}')
 
+        best_loss = float("inf")
 
         train_xy = data['train']
         valid_xy = data['valid']
         for epoch in range(num_epochs):
             logging.info(f'Training Epoch {epoch + 1}')
             logging.info("")
-            # print('current training step is ', NUM_UPDATED)
-            
 
             feature_loss = copy.deepcopy(self.feature_loss_init)
             total_loss = []
@@ -110,7 +112,6 @@ class HANBaselineModelRun(ModelRun):
             logging.info('Training Loss')
             self.print_loss(feature_loss, total_loss)
 
-                    ## Validation
             validation_feature_loss = copy.deepcopy(self.feature_loss_init)
             validation_loss = []
             for xy_tuple in valid_xy:
@@ -131,8 +132,6 @@ class HANBaselineModelRun(ModelRun):
                 pedal_status = torch.Tensor(pedal_status).view(1,-1,1).to(self.device)
                 outputs, total_z = self.run_model_in_steps(batch_x, batch_y, graphs, note_locations, model)
 
-                # valid_loss = criterion(outputs[:,:,NUM_TEMPO_PARAM:-num_trill_param], batch_y[:,:,NUM_TEMPO_PARAM:-num_trill_param], align_matched)
-
                 tempo_loss = self.cal_tempo_loss_in_beat(outputs, batch_y, note_locations, 0)
                 vel_loss = self.criterion(outputs[:, :, self.vel_param_idx], batch_y[:, :, self.vel_param_idx], align_matched)
                 deviation_loss = self.criterion(outputs[:, :, self.dev_param_idx], batch_y[:, :, self.dev_param_idx], align_matched)
@@ -144,7 +143,6 @@ class HANBaselineModelRun(ModelRun):
                     kld_loss = -0.5 * torch.sum(1 + perform_var - perform_mu.pow(2) - perform_var.exp())
                     validation_feature_loss['kld'].append(kld_loss.item())
 
-                # valid_loss_total.append(valid_loss.item())
                 validation_feature_loss['tempo'].append(tempo_loss.item())
                 validation_feature_loss['vel'].append(vel_loss.item())
                 validation_feature_loss['dev'].append(deviation_loss.item())
@@ -156,46 +154,24 @@ class HANBaselineModelRun(ModelRun):
 
                 validation_loss.append(loss.item())
 
-            # mean_tempo_loss = np.mean(validation_feature_loss['tempo'])
-            # mean_vel_loss = np.mean(validation_feature_loss['vel'])
-            # mean_deviation_loss = np.mean(validation_feature_loss['dev'])
-            # mean_articul_loss = np.mean(validation_feature_loss['articul'])
-            # mean_pedal_loss = np.mean(validation_feature_loss['pedal'])
-            # mean_trill_loss = np.mean(validation_feature_loss['trill'])
-            # mean_kld_loss = np.mean(validation_feature_loss['kld'])
-
-            # mean_valid_loss = (mean_tempo_loss + mean_vel_loss + mean_deviation_loss + mean_articul_loss + mean_pedal_loss * 7 + mean_kld_loss * kld_weight) / (11 + kld_weight)
-
             logging.info('Validation loss')
             self.print_loss(validation_feature_loss, validation_loss)
             logging.info("")
-            # print("Valid Loss= {:.4f} , Tempo: {:.4f}, Vel: {:.4f}, Deviation: {:.4f}, Articulation: {:.4f}, Pedal: {:.4f}, Trill: {:.4f}"
-            #     .format(mean_valid_loss, mean_tempo_loss , mean_vel_loss,
-            #             mean_deviation_loss, mean_articul_loss, mean_pedal_loss, mean_trill_loss))
 
-            # is_best = mean_valid_loss < best_prime_loss
-            # best_prime_loss = min(mean_valid_loss, best_prime_loss)
+            mean_valid_loss = np.mean(validation_loss)
+            if ((epoch+1) >= 5 and (epoch+1) % 5 == 0):
+                sendToDiscord(f'Trained model for {epoch + 1} epochs with loss of {mean_valid_loss}')
 
-            # is_best_trill = mean_trill_loss < best_trill_loss
-            # best_trill_loss = min(mean_trill_loss, best_trill_loss)
+            is_best = mean_valid_loss < best_loss
+            best_loss = min(mean_valid_loss, best_loss)
 
-            # if args.trainTrill:
-            #     save_checkpoint({
-            #         'epoch': epoch + 1,
-            #         'state_dict': MODEL.state_dict(),
-            #         'best_valid_loss': best_trill_loss,
-            #         'optimizer': optimizer.state_dict(),
-            #         'training_step': NUM_UPDATED
-            #     }, is_best_trill, model_name='trill')
-            # else:
-            #     save_checkpoint({
-            #         'epoch': epoch + 1,
-            #         'state_dict': MODEL.state_dict(),
-            #         'best_valid_loss': best_prime_loss,
-            #         'optimizer': optimizer.state_dict(),
-            #         'training_step': NUM_UPDATED
-            #     }, is_best, model_name='prime')
-
+            self.save_checkpoint({
+                'epoch': epoch + 1,
+                'state_dict': model.state_dict(),
+                'best_valid_loss': best_loss,
+                'optimizer': self.optimizer.state_dict(),
+                'training_step': self.num_updated
+            }, is_best, "BL/HAN_BL", version)
 
     def batch_time_step_run(self, data, model):
         batch_start, batch_end = data['slice_idx']
@@ -282,8 +258,9 @@ class HANBaselineModelRun(ModelRun):
             if data_size == 0:
                 data_size = 1
         if target.shape != pred.shape:
-            print('Error: The shape of the target and prediction for the loss calculation is different')
-            print(target.shape, pred.shape)
+            logging.error('Error: The shape of the target and prediction for the loss calculation is different')
+            logging.error(target.shape, pred.shape)
+            sendToDiscord('There was an error with a loss calcuation, please check training logs')
             return torch.zeros(1).to(self.device)
         return torch.sum(((target - pred) ** 2) * aligned_status) / data_size
 
@@ -317,17 +294,23 @@ class HANBaselineModelRun(ModelRun):
 
         return tempo_loss
 
-def run_han_bl_job(data, num_epochs, dataset_type):
+def run_han_bl_job(data, num_epochs, version, is_dev):
     try:
-        logging.info(f"STARTING TRAINING JOB AT {num_epochs} EPOCHS FOR {dataset_type} DATA SET")
+        type = "DEV" if is_dev else ""
+        start_message = f"STARTING HAN BL TRAINING VERSION {version} JOB AT {num_epochs} EPOCHS FOR {type} DATA SET"
+        logging.info(start_message)
+        sendToDiscord(start_message)
         device = 1
 
         hyper_params = HANBaselineHyperParams()
         model = HANBaseline(hyper_params, device).to(device)
         
-        job = HANBaselineModelRun(device)
-        job.train(model, data, num_epochs)
-        logging.info(f'FINISHED TRAINING JOB AT {num_epochs} EPOCHS FOR {dataset_type} DATA SET')
+        job = HANBaselineModelRun(device, is_dev)
+        job.train(model, data, num_epochs, version)
+        end_message = f'FINISHED HAN BL VERSION {version} TRAINING JOB AT {num_epochs} EPOCHS FOR {type} DATA SET'
+        logging.info(end_message)
+        sendToDiscord(end_message)
     except Exception as e:
         logging.exception("Error during training")
+        sendToDiscord("There was an error during training for the HAN BL training job, please check logs")
         raise e
