@@ -2,6 +2,7 @@ import os
 import traceback
 from pyScoreParser import dataset_split as split
 from pyScoreParser.data_generation import get_piece_pairs
+from pyScoreParser import xml_matching
 
 VALID_LIST = split.VALID_LIST
 TEST_LIST = split.TEST_LIST
@@ -61,3 +62,10 @@ def read_pre_processed(folder_path, data_split=None):
         return load_limited_subfolder(folder_path, data_split, 2)
     else:
         return load_entire_subfolder(folder_path, 2)
+
+def read_single_score(path_name, composer, means, stds,mean_vel=(50,65), start_tempo=0):
+    # vel_pair = (int(args.velocity.split(',')[0]), int(args.velocity.split(',')[1]))
+    test_x, xml_notes, xml_doc, edges, note_locations = \
+        xml_matching.read_xml_to_array(path_name, means, stds,start_tempo, composer,mean_vel)
+
+    return test_x, xml_notes, xml_doc, edges, note_locations

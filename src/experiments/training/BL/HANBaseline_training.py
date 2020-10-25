@@ -225,7 +225,6 @@ class HANBaselineModelRun(ModelRun):
             slice_indexes = dp.make_slicing_indexes_by_measure(num_notes, measure_numbers, steps=self.valid_steps, overlap=False)
             # if edges is not None:
             #     edges = edges.to(DEVICE)
-
             for slice_idx in slice_indexes:
                 batch_start, batch_end = slice_idx
                 if edges is not None:

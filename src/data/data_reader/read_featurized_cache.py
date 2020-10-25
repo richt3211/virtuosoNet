@@ -16,3 +16,10 @@ def read_featurized(file_path):
     logging.info(f'training sample example: {train_xy[0][0][0]}')
 
     return complete_xy
+
+def read_featurized_stats(file_path):
+    with open(file_path, "rb") as f:
+        u = pickle._Unpickler(f)
+        u.encoding = 'latin1'
+        means, stds = u.load()
+        return means, stds
