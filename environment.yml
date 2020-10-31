@@ -2,15 +2,17 @@ name: thesis
 dependencies:
     - pytorch
     - torchvision
-    # - cudatoolkit=10.0
+    - cudatoolkit=10.2
     - matplotlib
     - pretty_midi
     - python
     - pylint
     - scipy
     - pixiedust
+    - music21
 channels:
     - pytorch
     - conda-forge
     - defaults
     - roebel
+    - iainsgillis

@@ -141,7 +141,7 @@ class HANBaseline(nn.Module):
         self.softmax = nn.Softmax(dim=0)
         self.sigmoid = nn.Sigmoid()
 
-    def forward(self, x, y, edges, note_locations, start_index, initial_z=False, rand_threshold=0.2, return_z=False):
+    def forward(self, x, y, note_locations, start_index, initial_z=False, rand_threshold=0.2, return_z=False):
         beat_numbers = [x.beat for x in note_locations]
         measure_numbers = [x.measure for x in note_locations]
         voice_numbers = [x.voice for x in note_locations]

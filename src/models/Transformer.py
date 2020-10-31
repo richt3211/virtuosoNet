@@ -3,19 +3,30 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-class TransformerEncoderOnly(nn.Module):
+class TransformerEncoderHyperParams():
 
-    def __init__(self, input_size, output_size, num_head, hidden_size, num_layers, dropout=0.1):
-        super(TransformerEncoderOnly, self).__init__()
+    def __init__(self):
+        self.input_size = 78
+        self.output_size = 11
+        self.num_head = 6
+        self.hidden_size = 256
+        self.num_layers = 5
+        self.dropout = 0.1
+
+class TransformerEncoder(nn.Module):
+
+    def __init__(self, params:TransformerEncoderHyperParams):
+        super().__init__()
         from torch.nn import TransformerEncoder, TransformerEncoderLayer
+        self.params = params
         self.model_type = 'Transformer'
         self.src_mask = None
-        self.pos_encoder = PositionalEncoding(input_size, dropout)
-        encoder_layers = TransformerEncoderLayer(input_size, num_head, hidden_size, dropout)
-        self.transformer_encoder = TransformerEncoder(encoder_layers, num_layers)
-        # self.encoder = nn.Embedding(ntoken, ninp)
-        self.input_size = input_size
-        self.decoder = nn.Linear(input_size, output_size)
+        self.pos_encoder = PositionalEncoding(params.input_size, params.dropout)
+        encoder_layers = TransformerEncoderLayer(params.input_size, params.num_head, params.hidden_size, params.dropout)
+    
+        self.transformer_encoder = TransformerEncoder(encoder_layers, params.num_layers)
+        self.input_size = params.input_size
+        self.decoder = nn.Linear(params.input_size, params.output_size)
 
         self.init_weights()
 
@@ -38,7 +49,7 @@ class TransformerEncoderOnly(nn.Module):
 
         # src = self.encoder(src) * math.sqrt(self.ninp)
         src = self.pos_encoder(src)
-        output = self.transformer_encoder(src, self.src_mask)
+        output = self.transformer_encoder(src)
         output = self.decoder(output)
         return output
 

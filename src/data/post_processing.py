@@ -23,7 +23,7 @@ def scale_model_prediction_to_original(prediction, MEANS, STDS):
     for i in range(11):
         prediction[:, i] *= STDS[1][i]
         prediction[:, i] += MEANS[1][i]
-    for i in range(11, 15):
-        prediction[:, i] *= STDS[1][i+4]
-        prediction[:, i] += MEANS[1][i+4]
+    # for i in range(11, 15):
+    #     prediction[:, i] *= STDS[1][i+4]
+    #     prediction[:, i] += MEANS[1][i+4]
     return prediction

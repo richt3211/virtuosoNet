@@ -905,3 +905,137 @@ FileNotFoundError: [Errno 2] No such file or directory: '/uusoc/exports/scratch/
 2020-10-24 17:02:45 - 
 2020-10-24 17:02:45 - Training Epoch 70
 2020-10-24 17:02:45 - 
+2020-10-24 19:51:58 - Training Loss
+2020-10-24 19:51:58 - Total Loss: 0.6859679004648376
+2020-10-24 19:51:58 - 	tempo: 0.1922 vel: 0.5173 dev: 1.511 articul: 0.6077 pedal: 0.6512 trill: 0.0 kld: 1.448 
+2020-10-24 19:51:58 - 
+2020-10-24 19:54:09 - Validation loss
+2020-10-24 19:54:09 - Total Loss: 0.6553008267428817
+2020-10-24 19:54:09 - 	tempo: 0.4394 vel: 0.6759 dev: 0.5014 articul: 0.7843 pedal: 0.6852 trill: 0.0 kld: 1.712 
+2020-10-24 19:54:09 - 
+2020-10-24 19:54:09 - 
+2020-10-24 19:54:09 - Training Epoch 71
+2020-10-24 19:54:09 - 
+2020-10-24 22:36:24 - Training Loss
+2020-10-24 22:36:24 - Total Loss: 0.7048250326217529
+2020-10-24 22:36:24 - 	tempo: 0.1888 vel: 0.5166 dev: 1.724 articul: 0.6075 pedal: 0.6509 trill: 0.0 kld: 1.448 
+2020-10-24 22:36:24 - 
+2020-10-24 22:40:08 - Validation loss
+2020-10-24 22:40:08 - Total Loss: 0.6658339336877916
+2020-10-24 22:40:08 - 	tempo: 0.4234 vel: 0.7909 dev: 0.5373 articul: 0.7715 pedal: 0.6839 trill: 0.0 kld: 1.947 
+2020-10-24 22:40:08 - 
+2020-10-24 22:40:08 - 
+2020-10-24 22:40:08 - Training Epoch 72
+2020-10-24 22:40:08 - 
+2020-10-25 01:46:32 - Training Loss
+2020-10-25 01:46:32 - Total Loss: 0.6875903023003243
+2020-10-25 01:46:32 - 	tempo: 0.1886 vel: 0.5149 dev: 1.551 articul: 0.6066 pedal: 0.6492 trill: 0.0 kld: 1.435 
+2020-10-25 01:46:32 - 
+2020-10-25 01:49:28 - Validation loss
+2020-10-25 01:49:28 - Total Loss: 0.6746632739356379
+2020-10-25 01:49:28 - 	tempo: 0.4771 vel: 0.6401 dev: 0.5872 articul: 0.7772 pedal: 0.704 trill: 0.0 kld: 1.77 
+2020-10-25 01:49:28 - 
+2020-10-25 01:49:28 - 
+2020-10-25 01:49:28 - Training Epoch 73
+2020-10-25 01:49:28 - 
+2020-10-25 04:15:43 - Training Loss
+2020-10-25 04:15:43 - Total Loss: 0.7379262251863911
+2020-10-25 04:15:43 - 	tempo: 0.1936 vel: 0.5175 dev: 2.093 articul: 0.6087 pedal: 0.6492 trill: 0.0 kld: 1.451 
+2020-10-25 04:15:43 - 
+2020-10-25 04:17:50 - Validation loss
+2020-10-25 04:17:50 - Total Loss: 0.6760522125334274
+2020-10-25 04:17:50 - 	tempo: 0.4449 vel: 0.6288 dev: 0.4912 articul: 0.7769 pedal: 0.7266 trill: 0.0 kld: 1.442 
+2020-10-25 04:17:50 - 
+2020-10-25 04:17:50 - 
+2020-10-25 04:17:50 - Training Epoch 74
+2020-10-25 04:17:50 - 
+2020-10-25 06:40:42 - Training Loss
+2020-10-25 06:40:42 - Total Loss: 0.7118623536852061
+2020-10-25 06:40:42 - 	tempo: 0.1915 vel: 0.5127 dev: 1.808 articul: 0.6079 pedal: 0.6505 trill: 0.0 kld: 1.428 
+2020-10-25 06:40:42 - 
+2020-10-25 06:42:58 - Validation loss
+2020-10-25 06:42:58 - Total Loss: 0.679110058560604
+2020-10-25 06:42:58 - 	tempo: 0.4099 vel: 0.8364 dev: 0.5302 articul: 0.8136 pedal: 0.6959 trill: 0.0 kld: 1.497 
+2020-10-25 06:42:58 - 
+2020-10-25 06:42:58 - 
+2020-10-25 06:42:58 - Training Epoch 75
+2020-10-25 06:42:58 - 
+2020-10-25 09:08:58 - Training Loss
+2020-10-25 09:08:58 - Total Loss: 0.6899162537100286
+2020-10-25 09:08:58 - 	tempo: 0.1916 vel: 0.5146 dev: 1.578 articul: 0.6058 pedal: 0.6489 trill: 0.0 kld: 1.42 
+2020-10-25 09:08:58 - 
+2020-10-25 09:11:06 - Validation loss
+2020-10-25 09:11:06 - Total Loss: 0.6571144305351304
+2020-10-25 09:11:06 - 	tempo: 0.3703 vel: 0.7148 dev: 0.4906 articul: 0.8118 pedal: 0.6899 trill: 0.0 kld: 1.758 
+2020-10-25 09:11:06 - 
+2020-10-25 09:11:06 - 
+2020-10-25 09:11:07 - Training Epoch 76
+2020-10-25 09:11:07 - 
+2020-10-25 11:38:47 - Training Loss
+2020-10-25 11:38:47 - Total Loss: 0.6841632069033308
+2020-10-25 11:38:47 - 	tempo: 0.196 vel: 0.5162 dev: 1.492 articul: 0.606 pedal: 0.6507 trill: 0.0 kld: 1.456 
+2020-10-25 11:38:47 - 
+2020-10-25 11:42:14 - Validation loss
+2020-10-25 11:42:14 - Total Loss: 0.671156046775783
+2020-10-25 11:42:14 - 	tempo: 0.3509 vel: 0.6944 dev: 0.5185 articul: 0.778 pedal: 0.7184 trill: 0.0 kld: 1.838 
+2020-10-25 11:42:14 - 
+2020-10-25 11:42:14 - 
+2020-10-25 11:42:14 - Training Epoch 77
+2020-10-25 11:42:14 - 
+2020-10-25 14:52:54 - Training Loss
+2020-10-25 14:52:54 - Total Loss: 0.7189691031629036
+2020-10-25 14:52:54 - 	tempo: 0.1932 vel: 0.5155 dev: 1.851 articul: 0.6107 pedal: 0.6542 trill: 0.0 kld: 1.441 
+2020-10-25 14:52:54 - 
+2020-10-25 14:55:02 - Validation loss
+2020-10-25 14:55:02 - Total Loss: 0.6663966575046865
+2020-10-25 14:55:02 - 	tempo: 0.438 vel: 0.7099 dev: 0.51 articul: 0.824 pedal: 0.6912 trill: 0.0 kld: 1.634 
+2020-10-25 14:55:02 - 
+2020-10-25 14:55:02 - 
+2020-10-25 14:55:02 - Training Epoch 78
+2020-10-25 14:55:02 - 
+2020-10-25 17:37:27 - Training Loss
+2020-10-25 17:37:27 - Total Loss: 0.6784911559940274
+2020-10-25 17:37:27 - 	tempo: 0.1907 vel: 0.5155 dev: 1.436 articul: 0.6086 pedal: 0.6507 trill: 0.0 kld: 1.435 
+2020-10-25 17:37:27 - 
+2020-10-25 17:39:49 - Validation loss
+2020-10-25 17:39:49 - Total Loss: 0.6882261415807213
+2020-10-25 17:39:49 - 	tempo: 0.3841 vel: 0.7629 dev: 0.5 articul: 0.8071 pedal: 0.7296 trill: 0.0 kld: 1.546 
+2020-10-25 17:39:49 - 
+2020-10-25 17:39:49 - 
+2020-10-25 17:39:49 - Training Epoch 79
+2020-10-25 17:39:49 - 
+2020-10-25 20:21:07 - Training Loss
+2020-10-25 20:21:07 - Total Loss: 0.7335640205315477
+2020-10-25 20:21:07 - 	tempo: 0.1926 vel: 0.5149 dev: 2.031 articul: 0.6096 pedal: 0.6522 trill: 0.0 kld: 1.418 
+2020-10-25 20:21:07 - 
+2020-10-25 20:23:14 - Validation loss
+2020-10-25 20:23:14 - Total Loss: 0.6665015622246556
+2020-10-25 20:23:14 - 	tempo: 0.4014 vel: 0.6683 dev: 0.4737 articul: 0.7833 pedal: 0.7137 trill: 0.0 kld: 1.502 
+2020-10-25 20:23:14 - 
+2020-10-25 20:23:14 - 
+2020-10-25 20:23:14 - Training Epoch 80
+2020-10-25 20:23:14 - 
+2020-10-25 22:47:53 - Training Loss
+2020-10-25 22:47:53 - Total Loss: 0.7525368039779367
+2020-10-25 22:47:53 - 	tempo: 0.1934 vel: 0.5162 dev: 2.238 articul: 0.6093 pedal: 0.6516 trill: 0.0 kld: 1.456 
+2020-10-25 22:47:53 - 
+2020-10-25 22:50:53 - Validation loss
+2020-10-25 22:50:53 - Total Loss: 0.6613812786413402
+2020-10-25 22:50:53 - 	tempo: 0.3969 vel: 0.7189 dev: 0.5764 articul: 0.8016 pedal: 0.6806 trill: 0.0 kld: 2.342 
+2020-10-25 22:50:53 - 
+2020-10-25 22:50:53 - 
+2020-10-25 22:50:53 - Error during training
+Traceback (most recent call last):
+  File "/home/rtimpson/scr/thesis/virtuosoNet/src/experiments/training/BL/HANBaseline_training.py", line 309, in run_han_bl_job
+    end_message = f'FINISHED HAN BL VERSION {version} TRAINING JOB AT {num_epochs} EPOCHS FOR {type} DATA SET'
+  File "/home/rtimpson/scr/thesis/virtuosoNet/src/experiments/training/BL/HANBaseline_training.py", line 163, in train
+    sendToDiscord(f'Trained model for {epoch + 1} epochs with loss of {mean_valid_loss}')
+  File "/home/rtimpson/scr/thesis/virtuosoNet/src/discord_bot.py", line 16, in sendToDiscord
+    response = requests.post(webhook_url, data=json.dumps(payload), headers=headers)
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/env/lib/python3.8/site-packages/requests/api.py", line 119, in post
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/env/lib/python3.8/site-packages/requests/api.py", line 61, in request
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/env/lib/python3.8/site-packages/requests/sessions.py", line 530, in request
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/env/lib/python3.8/site-packages/requests/sessions.py", line 643, in send
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/env/lib/python3.8/site-packages/requests/adapters.py", line 416, in send
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/env/lib/python3.8/site-packages/requests/adapters.py", line 227, in cert_verify
+OSError: Could not find a suitable TLS CA certificate bundle, invalid path: /uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/env/lib/python3.8/site-packages/certifi/cacert.pem

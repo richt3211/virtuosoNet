@@ -33,8 +33,8 @@ class ModelJobParams():
         self.num_output = 11
         self.num_prime_param = 11
     
-        device=1
-        torch.cuda.set_device(device)
+        self.device_num=1
+        torch.cuda.set_device(self.device_num)
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
         self.is_dev = is_dev

@@ -1,5 +1,5 @@
 from src.models.model_run_job import ModelJob, ModelJobParams
-from src.models.Transformer import TransformerEncoderOnly
+from src.models.Transformer import TransformerEncoder, TransformerEncoderHyperParams
 
 import torch
 
@@ -11,14 +11,8 @@ class TransformerEncoderJob(ModelJob):
         self.learning_rate = 0.5
         self.num_key_augmentation = 1
         self.grad_clip = 0.5
-        self.model = TransformerEncoderOnly(
-            input_size=self.params.num_input,
-            output_size=self.params.num_output,
-            num_head=6,
-            hidden_size=256,
-            num_layers=5
-        ).to(self.params.device)
-
+        hyper_params = TransformerEncoderHyperParams()
+        self.model = TransformerEncoder(hyper_params).to(self.params.device)
         self.model_name = 'TRANSFORMER ENCODER ONLY'
 
     def init_optimizer(self, model):
