@@ -16,7 +16,7 @@ class TransformerEncoderJob(ModelJob):
         self.model_name = 'TRANSFORMER ENCODER ONLY'
 
     def init_optimizer(self, model):
-        self.optimizer = torch.optim.Adam(model.parameters(), lr=0.1, betas=(0.9, 0.999), eps=1e-09) 
+        self.optimizer = torch.optim.Adam(model.parameters(), 0.1) 
         # scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, 1.0, gamma=0.95)
 
     def step_optimizer(self, model, total_loss):

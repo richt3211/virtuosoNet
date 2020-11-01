@@ -1,0 +1,105 @@
+2020-10-31 14:16:23 - Loading the training data
+2020-10-31 14:16:28 - number of train performances: 5 number of valid perf: 3
+2020-10-31 14:16:28 - training sample example: [0.40253450874098085, -0.9043350534864922, 2.272152234854334, 1.6245242470007877, 1.2609703359796316, -0.13802735400033747, -0.8957452833471335, -0.8172526447037678, 0.0, 0.0, -1, 0, 0, 0.25, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, 0.4, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5, 0]
+2020-10-31 14:16:29 - STARTING HAN BL TRAINING VERSION 0.3 JOB AT 5 EPOCHS FOR DEV DATA SET
+2020-10-31 14:16:32 - Starting training job at 10/31/20 02:16:32
+2020-10-31 14:16:32 - Training Epoch 1
+2020-10-31 14:16:32 - 
+2020-10-31 14:16:32 - Error during training
+Traceback (most recent call last):
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/src/experiments/training/BL/HANBaseline_training.py", line 320, in run_han_bl_job
+    job.train(model, data, num_epochs, version)
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/src/experiments/training/BL/HANBaseline_training.py", line 112, in train
+    self.batch_time_step_run(training_data, model=model)
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/src/experiments/training/BL/HANBaseline_training.py", line 205, in batch_time_step_run
+    = model_train(prime_batch_x, prime_batch_y, edges, data['note_locations'], batch_start)
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/env/lib/python3.7/site-packages/torch/nn/modules/module.py", line 727, in _call_impl
+    result = self.forward(*input, **kwargs)
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/src/models/BL.py", line 145, in forward
+    beat_numbers = [x.beat for x in note_locations]
+TypeError: 'NoneType' object is not iterable
+2020-10-31 14:18:52 - STARTING HAN BL TRAINING VERSION 0.3 JOB AT 5 EPOCHS FOR DEV DATA SET
+2020-10-31 14:18:52 - Starting training job at 10/31/20 02:18:52
+2020-10-31 14:18:52 - Training Epoch 1
+2020-10-31 14:18:52 - 
+2020-10-31 14:18:52 - Error during training
+Traceback (most recent call last):
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/src/experiments/training/BL/HANBaseline_training.py", line 321, in run_han_bl_job
+    job.train(model, data, num_epochs, version)
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/src/experiments/training/BL/HANBaseline_training.py", line 112, in train
+    self.batch_time_step_run(training_data, model=model)
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/src/experiments/training/BL/HANBaseline_training.py", line 206, in batch_time_step_run
+    = model_train(prime_batch_x, prime_batch_y, edges, data['note_locations'], batch_start)
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/env/lib/python3.7/site-packages/torch/nn/modules/module.py", line 727, in _call_impl
+    result = self.forward(*input, **kwargs)
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/src/models/BL.py", line 145, in forward
+    beat_numbers = [x.beat for x in note_locations]
+TypeError: 'NoneType' object is not iterable
+2020-10-31 14:19:38 - STARTING HAN BL TRAINING VERSION 0.3 JOB AT 5 EPOCHS FOR DEV DATA SET
+2020-10-31 14:19:38 - Starting training job at 10/31/20 02:19:38
+2020-10-31 14:19:38 - Training Epoch 1
+2020-10-31 14:19:38 - 
+2020-10-31 14:19:38 - Error during training
+Traceback (most recent call last):
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/src/experiments/training/BL/HANBaseline_training.py", line 322, in run_han_bl_job
+    job.train(model, data, num_epochs, version)
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/src/experiments/training/BL/HANBaseline_training.py", line 112, in train
+    self.batch_time_step_run(training_data, model=model)
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/src/experiments/training/BL/HANBaseline_training.py", line 207, in batch_time_step_run
+    = model_train(prime_batch_x, prime_batch_y, edges, data['note_locations'], batch_start)
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/env/lib/python3.7/site-packages/torch/nn/modules/module.py", line 727, in _call_impl
+    result = self.forward(*input, **kwargs)
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/src/models/BL.py", line 145, in forward
+    beat_numbers = [x.beat for x in note_locations]
+TypeError: 'NoneType' object is not iterable
+2020-10-31 14:20:43 - STARTING HAN BL TRAINING VERSION 0.3 JOB AT 5 EPOCHS FOR DEV DATA SET
+2020-10-31 14:20:43 - Starting training job at 10/31/20 02:20:43
+2020-10-31 14:20:43 - Training Epoch 1
+2020-10-31 14:20:43 - 
+2020-10-31 14:20:43 - Error during training
+Traceback (most recent call last):
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/src/experiments/training/BL/HANBaseline_training.py", line 322, in run_han_bl_job
+    job.train(model, data, num_epochs, version)
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/src/experiments/training/BL/HANBaseline_training.py", line 112, in train
+    self.batch_time_step_run(training_data, model=model)
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/src/experiments/training/BL/HANBaseline_training.py", line 211, in batch_time_step_run
+    vel_loss = self.criterion(outputs[:, :, self.vel_param_idx:self.dev_param_idx], prime_batch_y[:, :, self.vel_param_idx:self.dev_param_idx], align_matched)
+AttributeError: 'HANBaselineModelRun' object has no attribute 'vel_param_idx'
+2020-10-31 14:21:17 - STARTING HAN BL TRAINING VERSION 0.3 JOB AT 5 EPOCHS FOR DEV DATA SET
+2020-10-31 14:21:17 - Starting training job at 10/31/20 02:21:17
+2020-10-31 14:21:17 - Training Epoch 1
+2020-10-31 14:21:17 - 
+2020-10-31 14:23:49 - STARTING HAN BL TRAINING VERSION 0.3 JOB AT 5 EPOCHS FOR DEV DATA SET
+2020-10-31 14:23:49 - Starting training job at 10/31/20 02:23:49
+2020-10-31 14:23:49 - Training Epoch 1
+2020-10-31 14:23:49 - 
+2020-10-31 14:24:51 - Training Loss
+2020-10-31 14:24:51 - Total Loss: 0.8193400530782464
+2020-10-31 14:24:51 - 	tempo: 0.172 vel: 0.8633 dev: 0.6806 articul: 0.8776 pedal: 0.917 trill: 0.0 kld: 0.1502 
+2020-10-31 14:24:51 - 
+2020-10-31 14:24:51 - Error during training
+Traceback (most recent call last):
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/src/experiments/training/BL/HANBaseline_training.py", line 335, in run_han_bl_job
+    job.train(model, data, num_epochs, version)
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/src/experiments/training/BL/HANBaseline_training.py", line 152, in train
+    outputs, total_z = self.run_model_in_steps(batch_x, batch_y, graphs, note_locations, model)
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/src/experiments/training/BL/HANBaseline_training.py", line 257, in run_model_in_steps
+    note_locations=note_locations, start_index=batch_start, initial_z=initial_z)
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/env/lib/python3.7/site-packages/torch/nn/modules/module.py", line 727, in _call_impl
+    result = self.forward(*input, **kwargs)
+TypeError: forward() got multiple values for argument 'note_locations'
+2020-10-31 14:26:45 - STARTING HAN BL TRAINING VERSION 0.3 JOB AT 5 EPOCHS FOR DEV DATA SET
+2020-10-31 14:26:45 - Starting training job at 10/31/20 02:26:45
+2020-10-31 14:26:45 - Training Epoch 1
+2020-10-31 14:26:45 - 
+2020-10-31 14:27:37 - Training Loss
+2020-10-31 14:27:37 - Total Loss: 0.8045450194676718
+2020-10-31 14:27:37 - 	tempo: 0.1555 vel: 0.866 dev: 0.6993 articul: 0.8647 pedal: 0.8949 trill: 0.0 kld: 1.13 
+2020-10-31 14:27:37 - 
+2020-10-31 14:27:39 - Validation loss
+2020-10-31 14:27:39 - Total Loss: 1.3155986467997234
+2020-10-31 14:27:39 - 	tempo: 3.69 vel: 1.013 dev: 0.811 articul: 1.151 pedal: 1.115 trill: 0.0 kld: 6.416 
+2020-10-31 14:27:39 - 
+2020-10-31 14:27:39 - 
+2020-10-31 14:27:39 - Training Epoch 2
+2020-10-31 14:27:39 - 

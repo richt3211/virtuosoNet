@@ -20,7 +20,7 @@ from src.models.model_run_job import ModelJobParams
 
 
 # %%
-logger_path = 'logs/run_dev_data_0.1.log'
+logger_path = 'logs/run_dev_data_0.2.log'
 init_logger(logger_path)
 
 

@@ -1,9 +1,10 @@
 
 
 from datetime import datetime
-from src.experiments.training.model_run_job import ModelRun
+# from src.experiments.models.model_run_job import ModelJob
 from src.models.BL import HANBaseline, HANBaselineHyperParams
 from src.discord_bot import sendToDiscord
+from src.models.model_run_job import ModelJob
 
 import src.old.data_process as dp
 import math 
@@ -13,10 +14,9 @@ import copy
 import numpy as np
 import logging
 
-class HANBaselineModelRun(ModelRun):
+class HANBaselineModelRun():
 
     def __init__(self, device, is_dev):
-        super().__init__(device, is_dev)
         self.num_input = 78
         self.num_output = 11
         self.num_prime_param = 11
@@ -38,6 +38,25 @@ class HANBaselineModelRun(ModelRun):
         self.learning_rate = 0.003
         self.weight_decay = 1e-5
         self.grad_clip = 5
+
+        self.device = device 
+        self.is_dev = is_dev
+
+        self.qpm_index = 0
+        self.vel_param_idx = 1
+        self.dev_param_idx = 2
+        self.articul_param_idx = 3
+        self.pedal_param_idx = 4
+
+        self.feature_loss_init = {
+            'tempo': [],
+            'vel': [],
+            'dev': [],
+            'articul': [],
+            'pedal': [],
+            'trill': [],
+            'kld': []
+        }
 
 
 
@@ -165,13 +184,13 @@ class HANBaselineModelRun(ModelRun):
             is_best = mean_valid_loss < best_loss
             best_loss = min(mean_valid_loss, best_loss)
 
-            self.save_checkpoint({
-                'epoch': epoch + 1,
-                'state_dict': model.state_dict(),
-                'best_valid_loss': best_loss,
-                'optimizer': self.optimizer.state_dict(),
-                'training_step': self.num_updated
-            }, is_best, "BL/HAN_BL", version)
+            # self.save_checkpoint({
+            #     'epoch': epoch + 1,
+            #     'state_dict': model.state_dict(),
+            #     'best_valid_loss': best_loss,
+            #     'optimizer': self.optimizer.state_dict(),
+            #     'training_step': self.num_updated
+            # }, is_best, "BL/HAN_BL", version)
 
     def batch_time_step_run(self, data, model):
         batch_start, batch_end = data['slice_idx']
@@ -190,7 +209,7 @@ class HANBaselineModelRun(ModelRun):
 
         model_train = model.train()
         outputs, perform_mu, perform_var, total_out_list \
-            = model_train(prime_batch_x, prime_batch_y, edges, data['note_locations'], batch_start)
+            = model_train(prime_batch_x, prime_batch_y, data['note_locations'], batch_start)
 
 
         tempo_loss = self.criterion(outputs[:, :, 0:1], prime_batch_y[:, :, 0:1], align_matched)
@@ -234,7 +253,7 @@ class HANBaselineModelRun(ModelRun):
                 
                 batch_input = input[:, batch_start:batch_end, :].view(1,-1,model.input_size)
                 batch_input_y = input_y[:, batch_start:batch_end, :].view(1,-1,model.output_size)
-                temp_outputs, perf_mu, perf_var, _ = model_eval(batch_input, batch_input_y, batch_graph,
+                temp_outputs, perf_mu, perf_var, _ = model_eval(batch_input, batch_input_y,
                                                                             note_locations=note_locations, start_index=batch_start, initial_z=initial_z)
                 total_z.append((perf_mu, perf_var))
                 total_output.append(temp_outputs)
@@ -292,6 +311,14 @@ class HANBaselineModelRun(ModelRun):
         #     tempo_loss = (tempo_loss + delta_loss * DELTA_WEIGHT) / (1 + DELTA_WEIGHT)
 
         return tempo_loss
+
+    def print_loss(self, feature_loss, loss):
+        logging.info(f'Total Loss: {np.mean(loss)}')
+        loss_string = "\t"
+        for key, value in feature_loss.items():
+            loss_string += f'{key}: {np.mean(value):.4} '
+        logging.info(loss_string)
+        logging.info("")
 
 def run_han_bl_job(data, num_epochs, version, is_dev):
     try:

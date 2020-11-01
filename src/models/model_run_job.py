@@ -220,12 +220,19 @@ class ModelJob():
         batch_start, batch_end = data['slice_idx']
         batch_x, batch_y = self.handle_data_in_tensor(data['x'][batch_start:batch_end], data['y'][batch_start:batch_end])
 
-        batch_x = batch_x.view((self.params.batch_size, -1, self.params.num_input))
-        batch_y = batch_y.view((self.params.batch_size, -1, self.params.num_output))
+        batch_x_ = batch_x.view((self.params.batch_size, -1, self.params.num_input))
+        batch_y_ = batch_y.view((self.params.batch_size, -1, self.params.num_output))
 
-        align_matched = torch.Tensor(data['align_matched'][batch_start:batch_end]).view((self.params.batch_size, -1, 1)).to(self.params.
+        batch_x = batch_x.view((-1, self.params.batch_size, self.params.num_input))
+        batch_y = batch_y.view((-1, self.params.batch_size, self.params.num_output))
+
+        align_matched_ = torch.Tensor(data['align_matched'][batch_start:batch_end]).view((self.params.batch_size, -1, 1)).to(self.params.
         device)
-        pedal_status = torch.Tensor(data['pedal_status'][batch_start:batch_end]).view((self.params.batch_size, -1, 1)).to(self.params.device)
+        pedal_status_ = torch.Tensor(data['pedal_status'][batch_start:batch_end]).view((self.params.batch_size, -1, 1)).to(self.params.device)
+
+        align_matched = torch.Tensor(data['align_matched'][batch_start:batch_end]).view((-1, self.params.batch_size, 1)).to(self.params.
+        device)
+        pedal_status = torch.Tensor(data['pedal_status'][batch_start:batch_end]).view((-1, self.params.batch_size, 1)).to(self.params.device)
 
         prime_batch_x = batch_x
         prime_batch_y = batch_y[:, :, 0:self.params.num_prime_param]
