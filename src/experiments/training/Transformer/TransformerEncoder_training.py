@@ -15,12 +15,14 @@ class TransformerEncoderJob(ModelJob):
         self.model = TransformerEncoder(hyper_params).to(self.params.device)
         self.model_name = 'TRANSFORMER ENCODER ONLY'
 
+    def zero_grad_optim(self):
+        self.optimizer.zero_grad()
+
     def init_optimizer(self, model):
-        self.optimizer = torch.optim.Adam(model.parameters(), 0.1) 
+        self.optimizer = torch.optim.Adam(model.parameters(), 0.01) 
         # scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, 1.0, gamma=0.95)
 
     def step_optimizer(self, model, total_loss):
-        self.optimizer.zero_grad()
         total_loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), self.grad_clip)
         self.optimizer.step()

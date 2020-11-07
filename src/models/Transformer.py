@@ -9,7 +9,7 @@ class TransformerEncoderHyperParams():
         self.input_size = 78
         self.output_size = 11
         self.num_head = 6
-        self.hidden_size = 256
+        self.hidden_size = 128
         self.num_layers = 5
         self.dropout = 0.1
 

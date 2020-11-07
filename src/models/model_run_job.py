@@ -151,7 +151,7 @@ class ModelJob():
             for xy_tuple in eval_data:
                 eval_x = xy_tuple[0]
                 eval_y = xy_tuple[1]
-                note_locations = xy_tuple[2]
+                note_locations = xy_tuple[2] 
                 align_matched = xy_tuple[3]
                 pedal_status = xy_tuple[4]
 
@@ -176,6 +176,9 @@ class ModelJob():
             data['slice_idx'] = slice_idx
             self.batch_time_step_run(data, model, feature_loss, total_loss, train)
             self.num_updated += 1
+
+    def zero_grad_optim(self):
+        pass
 
     def init_optimizer(self):
         pass
@@ -248,6 +251,7 @@ class ModelJob():
     def batch_time_step_run(self, data, model, feature_loss, loss, train=True):
         batch_x, batch_y, align_matched, pedal_status = self.get_batch_and_alignment(data)
 
+        self.zero_grad_optim()
         outputs = model(batch_x)
 
         tempo_loss, vel_loss, dev_loss, articul_loss, pedal_loss, trill_loss, total_loss = self.calculate_loss(outputs, batch_y, align_matched, pedal_status)
