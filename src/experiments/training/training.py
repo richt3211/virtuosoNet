@@ -2,7 +2,7 @@ from torch._C import ClassType
 from src.logger import init_logger 
 from src.constants import CACHE_DATA_DIR
 from src.data.data_reader.read_featurized_cache import read_featurized
-from src.models.model_run_job import ModelJobParams
+from src.models.model_run_job import ModelJob, ModelJobParams
 
 import os 
 import logging
@@ -38,8 +38,16 @@ def get_full_data():
   logging.info('Reading Full Data')
   return dev_data
 
-def start_training(num_epcohs:int, job: ModelJob, job_params, model:nn.Module, model_hyper_params: ModelJobParams):
-  num_epochs = 30
-  run_params = ModelJobParams(is_dev=True)
-  training_job = TransformerEncoderJob(run_params)
-  training_job.run_job(dev_data, num_epochs, version=0.2)
+def start_training(
+  data, 
+  version: float,
+  num_epochs:int, 
+  model:nn.Module, 
+  job_class, 
+  job_params:ModelJobParams = None, 
+):
+  if job_params == None:
+    job_params = ModelJobParams()
+
+  training_job = job_class(job_params, model)
+  training_job.run_job(data, num_epochs, version=version)
