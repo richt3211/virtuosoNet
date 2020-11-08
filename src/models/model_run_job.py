@@ -20,32 +20,23 @@ logger = logging.getLogger()
 @dataclass
 class ModelJobParams():
     qpm_index:int = 0
-    vel_param_index:int = 0
+    vel_param_idx:int = 0
     dev_param_idx:int = 2
-    def __init__(self, is_dev):
-        self.qpm_index = 0
-        self.vel_param_idx = 1
-        self.dev_param_idx = 2
-        self.articul_param_idx = 3
-        self.pedal_param_idx = 4
+    articul_param_idx:int = 3
+    pedal_param_idx:int = 4
 
-        self.time_steps = 500
-        self.num_key_augmentation = 1
-        self.batch_size = 1
-        
-        self.num_tempo_param = 1
-        self.num_input = 78
-        self.num_output = 11
-        self.num_prime_param = 11
-    
-        self.device_num=1
-        torch.cuda.set_device(self.device_num)
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    time_steps:int = 500
+    num_key_augmentation:int = 1
+    batch_size:int = 1
 
-        self.is_dev = is_dev
+    num_tempo_param:int = 1
+    num_input:int = 78
+    num_output:int = 11
+    num_prime_param:int = 11
 
-    def register_param(self, param): 
-
+    device_num:int = 1 
+    device = torch.device('cuda' if torch.cuda_is_available() else 'cpu')
+    is_dev:bool = False
 
 class ModelJob():
 
