@@ -2,9 +2,11 @@ from src.logger import init_logger
 from src.constants import CACHE_MODEL_DIR
 from src.discord_bot import sendToDiscord
 from src.models.model_writer_reader import save_checkpoint
-import src.old.data_process as dp
+from dataclasses import dataclass
 
+import src.old.data_process as dp
 import torch 
+import torch.nn as nn
 import numpy as np
 import logging
 import os
@@ -15,8 +17,11 @@ import copy
 
 logger = logging.getLogger()
 
+@dataclass
 class ModelJobParams():
-
+    qpm_index:int = 0
+    vel_param_index:int = 0
+    dev_param_idx:int = 2
     def __init__(self, is_dev):
         self.qpm_index = 0
         self.vel_param_idx = 1
@@ -39,9 +44,12 @@ class ModelJobParams():
 
         self.is_dev = is_dev
 
+    def register_param(self, param): 
+
+
 class ModelJob():
 
-    def __init__(self, params:ModelJobParams):
+    def __init__(self, params:ModelJobParams, model:nn.Module):
         self.params = params
         self.feature_loss_init = {
             'tempo': [],
@@ -54,7 +62,7 @@ class ModelJob():
         }
         self.model_name = None
         self.hyper_params = None
-        self.model = None
+        self.model = model
         self.num_updated = 0
 
     def run_job(self, data, num_epochs, version):

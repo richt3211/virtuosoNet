@@ -5,14 +5,15 @@ import torch
 
 
 class TransformerEncoderJob(ModelJob):
-    def __init__(self, params:ModelJobParams):
-        super().__init__(params)
+    def __init__(self, params:ModelJobParams, model:TransformerEncoder):
+        super().__init__(params, model)
 
         self.learning_rate = 0.5
         self.num_key_augmentation = 1
         self.grad_clip = 0.5
-        hyper_params = TransformerEncoderHyperParams()
-        self.model = TransformerEncoder(hyper_params).to(self.params.device)
+        # hyper_params = TransformerEncoderHyperParams()
+        # self.model = TransformerEncoder(hyper_params).to(self.params.device)
+        self.model = model.to(self.params.device)
         self.model_name = 'TRANSFORMER ENCODER ONLY'
 
     def zero_grad_optim(self):
