@@ -2,16 +2,28 @@ import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import logging 
+import json 
+import numpy as np
 
-class TransformerEncoderHyperParams():
+from dataclasses import dataclass, asdict, field
+from src.models.params import Params
 
-    def __init__(self):
-        self.input_size = 78
-        self.output_size = 11
-        self.num_head = 6
-        self.hidden_size = 128
-        self.num_layers = 5
-        self.dropout = 0.1
+@dataclass
+class TransformerEncoderHyperParams(Params):
+
+    input_size:int = 78
+    output_size:int = 11
+    num_head:int = 6
+    hidden_size:int = 128
+    num_layers:int = 5
+    dropout:float = 0.1
+
+    def __post_init__(self):
+        logging.info('Transformer Encoder Hyper Params')
+        super().__post_init__()
+        # logging.info(json.dumps(asdict(self), indent=4))
+
 
 class TransformerEncoder(nn.Module):
 
@@ -24,7 +36,7 @@ class TransformerEncoder(nn.Module):
         self.pos_encoder = PositionalEncoding(params.input_size, params.dropout)
         encoder_layers = TransformerEncoderLayer(params.input_size, params.num_head, params.hidden_size, params.dropout)
     
-        self.transformer_encoder = TransformerEncoder(encoder_layers, params.num_layers)
+        self.transformer_encoder = nn.TransformerEncoder(encoder_layers, params.num_layers)
         self.input_size = params.input_size
         self.decoder = nn.Linear(params.input_size, params.output_size)
 
@@ -37,7 +49,8 @@ class TransformerEncoder(nn.Module):
 
     def init_weights(self):
         initrange = 0.1
-        # self.encoder.weight.data.uniform_(-initrange, initrange)
+        # https://stackoverflow.com/a/55546528
+        # self.transformer_encoder.weight.data.normal_(mean=0.0, std=1/np.sqrt(self.input_size))
         self.decoder.bias.data.zero_()
         self.decoder.weight.data.uniform_(-initrange, initrange)
 

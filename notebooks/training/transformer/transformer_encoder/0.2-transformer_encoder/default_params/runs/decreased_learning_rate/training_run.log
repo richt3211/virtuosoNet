@@ -1,0 +1,111 @@
+2020-11-08 16:59:41 - Starting training job for model Transformer Encoder
+2020-11-08 16:59:41 - Decreased the learning rate and changed from adam to adamw optimizer. Also changed the weight initialization
+2020-11-08 16:59:52 - Transformer Encoder Hyper Params
+2020-11-08 16:59:52 - {
+    "input_size": 78,
+    "output_size": 11,
+    "num_head": 6,
+    "hidden_size": 128,
+    "num_layers": 5,
+    "dropout": 0.1
+}
+2020-11-08 16:59:52 - Transformer Encoder Job params
+2020-11-08 16:59:53 - {
+    "qpm_index": false,
+    "vel_param_idx": 0,
+    "dev_param_idx": 2,
+    "articul_param_idx": 3,
+    "pedal_param_idx": 4,
+    "time_steps": 500,
+    "num_key_augmentation": 1,
+    "batch_size": 1,
+    "num_tempo_param": 1,
+    "num_input": 78,
+    "num_output": 11,
+    "num_prime_param": 11,
+    "device_num": 1,
+    "is_dev": false,
+    "learning_rate": 3e-05,
+    "grad_clip": 0.5,
+    "model_name": "TRANSFORMER ENCODER ONLY"
+}
+2020-11-08 16:59:59 - Reading Full Data
+2020-11-08 16:59:59 - Loading the training data
+2020-11-08 17:00:18 - Reading Full Data
+2020-11-08 17:00:18 - Loading the training data
+2020-11-08 17:11:59 - number of train performances: 709 number of valid perf: 82
+2020-11-08 17:11:59 - training sample example: [-1.962150341422854, -0.06717901528552674, 1.8699356872077189, 0.13782855458600415, 0.5691738323041352, -0.0476638292090852, -0.6179821514476284, -0.7241930870686905, 0.0, 0.0, 0, 0, 0, -0.5, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, -0.7, 0, 0, 0.3, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5, 0]
+2020-11-08 17:12:07 - STARTING None TRAINING VERSION 0.2 JOB AT 30 EPOCHS FOR  DATA SET
+2020-11-08 17:12:08 - Number of model params: 226539
+2020-11-08 17:12:08 - TransformerEncoder(
+  (pos_encoder): PositionalEncoding(
+    (dropout): Dropout(p=0.1, inplace=False)
+  )
+  (transformer_encoder): TransformerEncoder(
+    (layers): ModuleList(
+      (0): TransformerEncoderLayer(
+        (self_attn): MultiheadAttention(
+          (out_proj): _LinearWithBias(in_features=78, out_features=78, bias=True)
+        )
+        (linear1): Linear(in_features=78, out_features=128, bias=True)
+        (dropout): Dropout(p=0.1, inplace=False)
+        (linear2): Linear(in_features=128, out_features=78, bias=True)
+        (norm1): LayerNorm((78,), eps=1e-05, elementwise_affine=True)
+        (norm2): LayerNorm((78,), eps=1e-05, elementwise_affine=True)
+        (dropout1): Dropout(p=0.1, inplace=False)
+        (dropout2): Dropout(p=0.1, inplace=False)
+      )
+      (1): TransformerEncoderLayer(
+        (self_attn): MultiheadAttention(
+          (out_proj): _LinearWithBias(in_features=78, out_features=78, bias=True)
+        )
+        (linear1): Linear(in_features=78, out_features=128, bias=True)
+        (dropout): Dropout(p=0.1, inplace=False)
+        (linear2): Linear(in_features=128, out_features=78, bias=True)
+        (norm1): LayerNorm((78,), eps=1e-05, elementwise_affine=True)
+        (norm2): LayerNorm((78,), eps=1e-05, elementwise_affine=True)
+        (dropout1): Dropout(p=0.1, inplace=False)
+        (dropout2): Dropout(p=0.1, inplace=False)
+      )
+      (2): TransformerEncoderLayer(
+        (self_attn): MultiheadAttention(
+          (out_proj): _LinearWithBias(in_features=78, out_features=78, bias=True)
+        )
+        (linear1): Linear(in_features=78, out_features=128, bias=True)
+        (dropout): Dropout(p=0.1, inplace=False)
+        (linear2): Linear(in_features=128, out_features=78, bias=True)
+        (norm1): LayerNorm((78,), eps=1e-05, elementwise_affine=True)
+        (norm2): LayerNorm((78,), eps=1e-05, elementwise_affine=True)
+        (dropout1): Dropout(p=0.1, inplace=False)
+        (dropout2): Dropout(p=0.1, inplace=False)
+      )
+      (3): TransformerEncoderLayer(
+        (self_attn): MultiheadAttention(
+          (out_proj): _LinearWithBias(in_features=78, out_features=78, bias=True)
+        )
+        (linear1): Linear(in_features=78, out_features=128, bias=True)
+        (dropout): Dropout(p=0.1, inplace=False)
+        (linear2): Linear(in_features=128, out_features=78, bias=True)
+        (norm1): LayerNorm((78,), eps=1e-05, elementwise_affine=True)
+        (norm2): LayerNorm((78,), eps=1e-05, elementwise_affine=True)
+        (dropout1): Dropout(p=0.1, inplace=False)
+        (dropout2): Dropout(p=0.1, inplace=False)
+      )
+      (4): TransformerEncoderLayer(
+        (self_attn): MultiheadAttention(
+          (out_proj): _LinearWithBias(in_features=78, out_features=78, bias=True)
+        )
+        (linear1): Linear(in_features=78, out_features=128, bias=True)
+        (dropout): Dropout(p=0.1, inplace=False)
+        (linear2): Linear(in_features=128, out_features=78, bias=True)
+        (norm1): LayerNorm((78,), eps=1e-05, elementwise_affine=True)
+        (norm2): LayerNorm((78,), eps=1e-05, elementwise_affine=True)
+        (dropout1): Dropout(p=0.1, inplace=False)
+        (dropout2): Dropout(p=0.1, inplace=False)
+      )
+    )
+  )
+  (decoder): Linear(in_features=78, out_features=11, bias=True)
+)
+2020-11-08 17:12:08 - Training Epoch 1
+2020-11-08 17:12:08 - 

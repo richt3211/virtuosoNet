@@ -2,12 +2,14 @@ from src.logger import init_logger
 from src.constants import CACHE_MODEL_DIR
 from src.discord_bot import sendToDiscord
 from src.models.model_writer_reader import save_checkpoint
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
+from src.models.params import Params
 
 import src.old.data_process as dp
-import torch 
 import torch.nn as nn
 import numpy as np
+import matplotlib.pyplot as plt
+import torch 
 import logging
 import os
 import shutil
@@ -18,7 +20,7 @@ import copy
 logger = logging.getLogger()
 
 @dataclass
-class ModelJobParams():
+class ModelJobParams(Params):
     qpm_index:int = 0
     vel_param_idx:int = 0
     dev_param_idx:int = 2
@@ -35,8 +37,14 @@ class ModelJobParams():
     num_prime_param:int = 11
 
     device_num:int = 1 
-    device = torch.device('cuda' if torch.cuda_is_available() else 'cpu')
+    device = torch.device(f'cuda:{device_num}')
     is_dev:bool = False
+
+    def __post_init__(self):
+        # logging.info('Model Job Params')
+        super().__post_init__()
+        # logging.info(json.dumps(asdict(self)))
+
 
 class ModelJob():
 
@@ -63,10 +71,15 @@ class ModelJob():
             logging.info(start_message)
             sendToDiscord(start_message)
 
-            self.train(self.model, data, num_epochs, version)
+            logging.info(f'Number of model params: {self.count_paramters()}')
+            logging.info(repr(self.model))
+
+            training_loss_total, valid_loss_total = self.train(self.model, data, num_epochs, version)
+
             end_message = f'FINISHED {self.model_name} VERSION {version} TRAINING JOB AT {num_epochs} EPOCHS FOR {type} DATA SET'
             logging.info(end_message)
             sendToDiscord(end_message)
+            return training_loss_total, valid_loss_total
         except Exception as e:
             logging.exception("Error during training")
             sendToDiscord("There was an error during training for the HAN BL training job, please check logs")
@@ -74,21 +87,27 @@ class ModelJob():
 
     def train(self, model, data, num_epochs, version):
         best_loss = float('inf')
+        training_loss_total = []
+        valid_loss_total = []
         for epoch in range(num_epochs):
             epoch_num = epoch +1
             logging.info(f'Training Epoch {epoch_num}')
             logging.info("")
 
-            total_loss, feature_loss = self.train_epoch(model, data['train'])
+            training_loss, training_feature_loss = self.train_epoch(model, data['train'])
+            # training_loss_total.extend(training_loss)
+            training_loss_total.append(np.mean(training_loss))
             logging.info('Training Loss')
-            self.print_loss(feature_loss, total_loss)
+            self.print_loss(training_feature_loss, training_loss)
 
-            total_valid_loss, valid_feature_loss = self.evaluate(model, data['valid'])
+            valid_loss, valid_feature_loss = self.evaluate(model, data['valid'])
+            valid_loss_total.append(np.mean(valid_loss))
+            # valid_loss_total.extend(valid_loss)
             logging.info('Validation loss')
-            self.print_loss(valid_feature_loss, total_valid_loss)
+            self.print_loss(valid_feature_loss, valid_loss)
             logging.info("")
 
-            mean_valid_loss = np.mean(total_valid_loss)
+            mean_valid_loss = np.mean(valid_loss)
             # if ((epoch_num) >= 5 and (epoch_num) % 5 == 0):
             sendToDiscord(f'Trained model for {epoch_num} epochs with validation loss of {mean_valid_loss}')
 
@@ -102,6 +121,8 @@ class ModelJob():
                 'optimizer': self.optimizer.state_dict(),
                 'training_step': self.num_updated
             }, is_best, "Transformer/TransformerEncoder", version)
+
+        return training_loss_total, valid_loss_total
 
 
     def train_epoch(self, model, train_data):
@@ -158,7 +179,6 @@ class ModelJob():
                 measure_numbers = [x.measure for x in note_locations]
 
                 slice_indexes = dp.make_slicing_indexes_by_measure(data_size, measure_numbers, steps=self.params.time_steps)
-
                 eval_data = {
                     'x': eval_x, 
                     'y': eval_y,
@@ -377,4 +397,5 @@ class ModelJob():
             return torch.zeros(1).to(self.params.device)
         return torch.sum(((target - pred) ** 2) * aligned_status) / data_size
 
-    
+    def count_paramters(self):
+        return sum(p.numel() for p in self.model.parameters() if p.requires_grad)

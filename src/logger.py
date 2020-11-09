@@ -2,7 +2,10 @@ import logging
 import os
 import sys
 
+initialized = False
+
 def init_logger(filename):
+    global initialized
     if (os.path.exists(filename)):
         os.remove(filename)
     logger = logging.getLogger()
@@ -15,7 +18,9 @@ def init_logger(filename):
     logger.addHandler(fhandler)
 
     # set log to stdout
-    consoleHandler = logging.StreamHandler(sys.stdout)
-    consoleHandler.setFormatter(formatter)
-    logger.addHandler(consoleHandler)
-    logger.setLevel(logging.INFO)
+    if initialized == False:
+        consoleHandler = logging.StreamHandler(sys.stdout)
+        consoleHandler.setFormatter(formatter)
+        logger.addHandler(consoleHandler)
+        logger.setLevel(logging.INFO)
+        initialized = True
