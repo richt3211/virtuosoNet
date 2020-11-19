@@ -1,7 +1,7 @@
 import json
 from typing import List, NewType
 from torch._C import ClassType
-from src.logger import init_logger 
+from src.logger import init_logger, log_neptune_timeline 
 from src.constants import CACHE_DATA_DIR
 from src.data.data_reader.read_featurized_cache import read_featurized
 from src.models.model_run_job import ModelJob, ModelJobParams
@@ -27,24 +27,31 @@ def init_training_job(is_dev:bool, exp_name:str, exp_description:str, hyper_para
   hyper_params_dict.update(job_params_dict)
   print(json.dumps(hyper_params_dict, indent=4))
 
+  logger = init_logger()
   exp_tags = [f'{"dev" if is_dev else "full"}'] + tags
   exp:Experiment = neptune.create_experiment(
     name=exp_name,
     description=exp_description,
     params=hyper_params_dict,
     tags=exp_tags,
+    logger=logger
   )
-  exp.log_text('timeline', 'Starting experiment')
+  logger.info('Starting experiment')
+  log_neptune_timeline('Starting experiment', exp)
   return exp
 
 def get_dev_data(exp:Experiment):
-  exp.log_text('timeline', 'Reading Dev Data')
+  message = 'Reading Dev Data'
+  log_neptune_timeline(message, exp)
+  logging.info(message)
   path = f'{CACHE_DATA_DIR}/train/training_data_development.pickle'
   dev_data = read_featurized(path, exp)
   return dev_data
 
 def get_full_data(exp:Experiment):
-  exp.log_text('timeline','Reading Full Data')
+  message = 'Reading Full Data'
+  log_neptune_timeline(message, exp)
+  logging.info(message)
   path = f'{CACHE_DATA_DIR}/train/training_data.pickle'
   dev_data = read_featurized(path, exp)
   return dev_data
@@ -52,7 +59,6 @@ def get_full_data(exp:Experiment):
 def start_training(
   data, 
   version:float, 
-  num_epochs:int, 
   job, 
   job_params:ModelJobParams, 
   model_class, 
@@ -62,7 +68,7 @@ def start_training(
 ):
   model = model_class(model_hyper_params)
   training_job = job(job_params, model, exp)
-  return training_job.run_job(data, num_epochs, version=version, model_folder=model_folder)
+  return training_job.run_job(data, version=version, model_folder=model_folder)
 
 def plot_loss(train_loss:List, valid_loss:List, folder_name:str, plot_title:str, is_dev:bool):
   max_loss = max(np.max(train_loss), np.max(valid_loss))

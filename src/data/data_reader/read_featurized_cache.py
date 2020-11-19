@@ -2,6 +2,8 @@ import pickle
 import logging 
 from neptune.experiments import Experiment
 
+from src.logger import log_neptune_timeline
+
 def read_featurized(file_path, exp:Experiment):
     with open(file_path, "rb") as f:
         u = pickle._Unpickler(f)
@@ -12,8 +14,8 @@ def read_featurized(file_path, exp:Experiment):
 
     train_xy = complete_xy['train']
     test_xy = complete_xy['valid']
-    exp.log_text('timeline', f'number of train performances: {len(train_xy)} number of valid perf: {len(test_xy)}')
-    exp.log_text('timeline', f'training sample example: {train_xy[0][0][0]}')
+    log_neptune_timeline(f'number of train performances: {len(train_xy)} number of valid perf: {len(test_xy)}', exp)
+    log_neptune_timeline(f'training sample example: {train_xy[0][0][0]}', exp)
 
     return complete_xy
 

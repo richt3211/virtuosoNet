@@ -2,20 +2,21 @@ import logging
 import os
 import sys
 
+from datetime import datetime
+
+from neptune.experiments import Experiment
+
 initialized = False
 
-def init_logger(filename):
+def init_logger():
     global initialized
-    if (os.path.exists(filename)):
-        os.remove(filename)
     logger = logging.getLogger()
-    # formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     formatter = logging.Formatter('%(asctime)s - %(message)s', "%Y-%m-%d %H:%M:%S")
 
     # set log to file 
-    fhandler = logging.FileHandler(filename=filename, mode='w')
-    fhandler.setFormatter(formatter)
-    logger.addHandler(fhandler)
+    # fhandler = logging.FileHandler(filename=filename, mode='w')
+    # fhandler.setFormatter(formatter)
+    # logger.addHandler(fhandler)
 
     # set log to stdout
     if initialized == False:
@@ -24,3 +25,8 @@ def init_logger(filename):
         logger.addHandler(consoleHandler)
         logger.setLevel(logging.INFO)
         initialized = True
+
+    return logger
+
+def log_neptune_timeline(log:str, exp:Experiment):
+        exp.log_text('timeline', f'{datetime.now()} - {log}')

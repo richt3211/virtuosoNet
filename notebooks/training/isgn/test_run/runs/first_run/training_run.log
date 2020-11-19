@@ -39,3 +39,27 @@
 2020-11-18 21:01:29 - Epoch [11/100], Loss: 0.6565, Tempo: 0.1551, Vel: 0.4534, Deviation: 1.9608, Articulation: 0.4889, Pedal: 0.5946, Trill: 0.0000, KLD: 4.9877
 2020-11-18 21:05:17 - Valid Loss= 0.6307 , Tempo: 0.4702, Vel: 0.5689, Deviation: 0.4827, Articulation: 0.7625, Pedal: 0.6644, Trill: 0.0000
 2020-11-18 21:05:18 - current training step is 135328
+2020-11-18 23:24:23 - Epoch [12/100], Loss: 0.6302, Tempo: 0.1516, Vel: 0.4504, Deviation: 1.6889, Articulation: 0.4811, Pedal: 0.5939, Trill: 0.0000, KLD: 4.2566
+2020-11-18 23:28:06 - Valid Loss= 0.6208 , Tempo: 0.4234, Vel: 0.5789, Deviation: 0.4759, Articulation: 0.7855, Pedal: 0.6518, Trill: 0.0000
+2020-11-18 23:28:07 - current training step is 147636
+2020-11-19 01:48:35 - Epoch [13/100], Loss: 0.5848, Tempo: 0.1494, Vel: 0.4477, Deviation: 1.2068, Articulation: 0.4786, Pedal: 0.5923, Trill: 0.0000, KLD: 3.6531
+2020-11-19 01:52:13 - Valid Loss= 0.6306 , Tempo: 0.4574, Vel: 0.5652, Deviation: 0.4777, Articulation: 0.8001, Pedal: 0.6618, Trill: 0.0000
+2020-11-19 01:52:13 - current training step is 159918
+2020-11-19 04:10:44 - Epoch [14/100], Loss: 0.6282, Tempo: 0.1501, Vel: 0.4471, Deviation: 1.6955, Articulation: 0.4757, Pedal: 0.5910, Trill: 0.0000, KLD: 3.0568
+2020-11-19 04:14:19 - Valid Loss= 0.6153 , Tempo: 0.4267, Vel: 0.5710, Deviation: 0.4886, Articulation: 0.7945, Pedal: 0.6401, Trill: 0.0000
+2020-11-19 04:14:20 - current training step is 172190
+2020-11-19 06:30:12 - Epoch [15/100], Loss: 0.5741, Tempo: 0.1482, Vel: 0.4445, Deviation: 1.1030, Articulation: 0.4738, Pedal: 0.5913, Trill: 0.0000, KLD: 2.5845
+2020-11-19 06:33:52 - Valid Loss= 0.6224 , Tempo: 0.5044, Vel: 0.5478, Deviation: 0.4756, Articulation: 0.7937, Pedal: 0.6454, Trill: 0.0000
+2020-11-19 06:33:53 - current training step is 184528
+2020-11-19 08:52:11 - Epoch [16/100], Loss: 0.6434, Tempo: 0.1466, Vel: 0.4428, Deviation: 1.8522, Articulation: 0.4721, Pedal: 0.5938, Trill: 0.0000, KLD: 2.1723
+2020-11-19 08:55:41 - Valid Loss= 0.6137 , Tempo: 0.4144, Vel: 0.5894, Deviation: 0.4683, Articulation: 0.7850, Pedal: 0.6404, Trill: 0.0000
+2020-11-19 08:55:42 - current training step is 196876
+2020-11-19 11:09:59 - Epoch [17/100], Loss: 0.5779, Tempo: 0.1461, Vel: 0.4421, Deviation: 1.1143, Articulation: 0.4690, Pedal: 0.5968, Trill: 0.0000, KLD: 1.8968
+2020-11-19 11:13:35 - Valid Loss= 0.6198 , Tempo: 0.4155, Vel: 0.5514, Deviation: 0.4666, Articulation: 0.8010, Pedal: 0.6532, Trill: 0.0000
+2020-11-19 11:13:35 - current training step is 209174
+2020-11-19 13:26:52 - Epoch [18/100], Loss: 0.5985, Tempo: 0.1448, Vel: 0.4400, Deviation: 1.3389, Articulation: 0.4671, Pedal: 0.5978, Trill: 0.0000, KLD: 1.6474
+2020-11-19 13:30:30 - Valid Loss= 0.6256 , Tempo: 0.4869, Vel: 0.5631, Deviation: 0.4748, Articulation: 0.7706, Pedal: 0.6536, Trill: 0.0000
+2020-11-19 13:30:30 - current training step is 221466
+2020-11-19 15:49:13 - Epoch [19/100], Loss: 0.6417, Tempo: 0.1454, Vel: 0.4394, Deviation: 1.8037, Articulation: 0.4654, Pedal: 0.5997, Trill: 0.0000, KLD: 1.5055
+2020-11-19 15:52:49 - Valid Loss= 0.6231 , Tempo: 0.4159, Vel: 0.6130, Deviation: 0.4754, Articulation: 0.7852, Pedal: 0.6505, Trill: 0.0000
+2020-11-19 15:52:49 - current training step is 233782

@@ -1,10 +1,13 @@
+from time import time
 from src.logger import init_logger
 from src.constants import CACHE_MODEL_DIR
 from src.discord_bot import sendToDiscord
 from src.models.model_writer_reader import save_checkpoint
 from src.models.params import Params
+from src.logger import log_neptune_timeline
 from dataclasses import asdict, dataclass
 from neptune.experiments import Experiment
+from datetime import datetime
 
 import src.old.data_process as dp
 import torch.nn as nn
@@ -16,6 +19,7 @@ import shutil
 import torch
 import random 
 import copy
+import logging
 
 
 @dataclass
@@ -29,6 +33,7 @@ class ModelJobParams(Params):
     time_steps:int = 500
     num_key_augmentation:int = 1
     batch_size:int = 1
+    epochs:int = 20
 
     num_tempo_param:int = 1
     num_prime_param:int = 11
@@ -56,45 +61,59 @@ class ModelJob():
         self.model = model
         self.num_updated = 0
 
-    def run_job(self, data, num_epochs, version, model_folder):
+    def run_job(self, data, version, model_folder):
         try:
             type = "DEV" if self.params.is_dev else ""
-            start_message = f"STARTING {self.model_name} TRAINING VERSION {version} JOB AT {num_epochs} EPOCHS FOR {type} DATA SET"
-            self.exp.log_text('timeline', start_message)
+            start_message = f"STARTING {self.model_name} TRAINING VERSION {version} JOB AT {self.params.epochs} EPOCHS FOR {type} DATA SET"
+            log_neptune_timeline(start_message, self.exp)
+            logging.info(start_message)
             sendToDiscord(start_message)
 
-            self.exp.log_text('number of model params', f'Number of model params: {self.count_paramters()}')
-            self.exp.log_text('model architecture', repr(self.model))
+            model_params = f'Number of model params: {self.count_paramters()}'
+            self.exp.log_text('number of model params', model_params)
+            logging.info(model_params)
 
-            training_loss_total, valid_loss_total = self.train(self.model, data, num_epochs, version, model_folder)
+            architecture = repr(self.model)
+            self.exp.log_text('model architecture', architecture)
+            logging.info(architecture)
 
-            end_message = f'FINISHED {self.model_name} VERSION {version} TRAINING JOB AT {num_epochs} EPOCHS FOR {type} DATA SET'
-            self.exp.log_text('timeline', end_message)
+            # training_loss_total, valid_loss_total = self.train(self.model, data, version, model_folder)
+            self.train(self.model, data, version, model_folder)
+
+
+            end_message = f'FINISHED {self.model_name} VERSION {version} TRAINING JOB AT {self.params.epochs} EPOCHS FOR {type} DATA SET'
+            log_neptune_timeline(end_message, self.exp)
+            logging.info(end_message)
             sendToDiscord(end_message)
-            return training_loss_total, valid_loss_total
+            # return training_loss_total, valid_loss_total
+            self.exp.stop()
+
         except Exception as e:
             self.exp.log_text('error message', 'Error in training, stopping')
+            self.exp.log_text('error message', str(e))
             self.exp.stop(str(e))
             sendToDiscord("There was an error during training for the HAN BL training job, please check logs")
             raise e
 
-    def train(self, model, data, num_epochs, version, model_folder):
+    def train(self, model, data, version, model_folder):
         best_loss = float('inf')
-        for epoch in range(num_epochs):
+        for epoch in range(self.params.epochs):
             epoch_num = epoch +1
-            self.exp.log_text('timeline', f'Training Epoch {epoch_num}')
+            message = f'Training Epoch {epoch_num}'
+            log_neptune_timeline(message, self.exp)
+            logging.info(message)
 
             training_loss, training_feature_loss = self.train_epoch(model, data['train'])
-            self.exp.log_metric('training total loss', np.mean(training_loss))
-            self.log_loss(training_loss, training_feature_loss, 'train')
+            self.log_loss(training_loss, training_feature_loss, 'train', epoch_num)
 
             valid_loss, valid_feature_loss = self.evaluate(model, data['valid'])
-            self.log_loss(valid_loss, valid_feature_loss, 'valid')
+            self.log_loss(valid_loss, valid_feature_loss, 'valid', epoch_num)
 
             mean_valid_loss = np.mean(valid_loss)
             # if ((epoch_num) >= 5 and (epoch_num) % 5 == 0):
             log_message = f'Trained model for {epoch_num} epochs with validation loss of {mean_valid_loss}'
-            self.exp.log_text('timeline', log_message)
+            logging.info(log_message)
+            log_neptune_timeline(log_message, self.exp)
             sendToDiscord(log_message)
 
             is_best = mean_valid_loss < best_loss
@@ -107,7 +126,10 @@ class ModelJob():
                 'optimizer': self.optimizer.state_dict(),
                 'training_step': self.num_updated
             }, is_best, model_folder, version)
-            self.exp.log_text('timeline', f'saving model at epoch {epoch +1} as the best model')
+            message = f'saving model at epoch {epoch +1} as the best model'
+            logging.info(message)
+            log_neptune_timeline(message, self.exp)
+            self.exp.log_metric('trained epochs', epoch + 1)
 
     def train_epoch(self, model, train_data):
         self.init_optimizer(model)
@@ -343,26 +365,37 @@ class ModelJob():
 
         return x.to(self.params.device), y.to(self.params.device)
 
-    def log_loss(self, total_loss: list, feature_loss: list, type:str):
-        self.exp.log_metric(f'{type} total loss', np.mean(total_loss))
+    def log_loss(self, total_loss: list, feature_loss: list, type:str, epoch:int):
+        self.exp.log_metric(f'{type} total loss', epoch, np.mean(total_loss))
+        log_str = f'{type} total loss: {np.mean(total_loss)}'
         for key, value in feature_loss.items():
-            self.exp.log_metric(f'{type} {key} loss',value)
+            self.exp.log_metric(f'{type} {key} loss', epoch, np.mean(value))
+            log_str += f'{key} loss: {np.mean(value)}, '
+        logging.info(log_str)
 
     def save_checkpoint(self, state, is_best, folder, version):
         folder = f'{CACHE_MODEL_DIR}/{folder}'
         if not os.path.exists(folder):
             os.makedirs(folder)
+        file_name = ''
         if self.params.is_dev:
-            filepath = f'{folder}/v{version}_dev.pth'
+            file_name = f'v{version}_dev.pth'
         else:
-            filepath = f'{folder}/v{version}.pth'
+            file_name = f'v{version}.pth'
+        filepath = f'{folder}/{file_name}'
         torch.save(state, filepath)
+        self.exp.log_artifact(filepath, file_name)
         if is_best:
+            file_name = ''
             if self.params.is_dev:
-                best_filepath = f'{folder}/v{version}_dev_best.pth'
+                file_name = f'v{version}_dev_best.pth'
             else:
-                best_filepath = f'{folder}/v{version}_best.pth'
+                file_name = f'v{version}_best.pth'
+
+            best_filepath = f'{folder}/{file_name}'
             shutil.copyfile(filepath, best_filepath)
+            self.exp.log_artifact(best_filepath, file_name)
+
 
     def han_criterion(self, pred, target, aligned_status=1):
         if isinstance(aligned_status, int):
