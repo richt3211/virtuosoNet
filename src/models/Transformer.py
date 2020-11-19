@@ -12,18 +12,10 @@ from src.models.params import Params
 @dataclass
 class TransformerEncoderHyperParams(Params):
 
-    input_size:int = 78
-    output_size:int = 11
     num_head:int = 6
     hidden_size:int = 128
     num_layers:int = 5
     dropout:float = 0.1
-
-    def __post_init__(self):
-        logging.info('Transformer Encoder Hyper Params')
-        super().__post_init__()
-        # logging.info(json.dumps(asdict(self), indent=4))
-
 
 class TransformerEncoder(nn.Module):
 

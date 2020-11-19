@@ -1,43 +1,52 @@
-from typing import List
+import json
+from typing import List, NewType
 from torch._C import ClassType
 from src.logger import init_logger 
 from src.constants import CACHE_DATA_DIR
 from src.data.data_reader.read_featurized_cache import read_featurized
 from src.models.model_run_job import ModelJob, ModelJobParams
+from src.keys import NEPTUNE_TOKEN
+from dataclasses import asdict
 
 import matplotlib.pyplot as plt
 import numpy as np
 import os 
 import logging
+import neptune
+from neptune.experiments import Experiment
 
-def init_training_job(is_dev:bool, dir_name: str, model_name: str, job_description: str = None) -> None:
-  '''Creates the job run folder if it doesn't exist
-  Creates the logging file if it doesn't exist. If the logging 
-  file already exists it will wipe it to start with a new one'''  
+from src.models.params import Params
 
-  if not os.path.exists('./runs'):
-    os.mkdir('./runs')
+def init_training_job(is_dev:bool, exp_name:str, exp_description:str, hyper_params:Params, job_params: ModelJobParams, tags:list = None) -> Experiment:
+  '''Initalizes and creates a neptune experiment. '''  
 
-  run_dir = f'./runs/{dir_name}{"_dev" if is_dev else ""}'
-  if not os.path.exists(run_dir):
-    os.mkdir(run_dir)
+  neptune.init('richt3211/thesis', api_token=NEPTUNE_TOKEN)
 
-  init_logger(f'{run_dir}/training_run.log')
+  hyper_params_dict = asdict(hyper_params)
+  job_params_dict = asdict(job_params)
+  hyper_params_dict.update(job_params_dict)
+  print(json.dumps(hyper_params_dict, indent=4))
 
-  logging.info(f'Starting training job for model {model_name}')
-  if job_description:
-    logging.info(job_description)
+  exp_tags = [f'{"dev" if is_dev else "full"}'] + tags
+  exp:Experiment = neptune.create_experiment(
+    name=exp_name,
+    description=exp_description,
+    params=hyper_params_dict,
+    tags=exp_tags,
+  )
+  exp.log_text('timeline', 'Starting experiment')
+  return exp
 
-def get_dev_data():
-  logging.info('Reading Dev Data')
+def get_dev_data(exp:Experiment):
+  exp.log_text('timeline', 'Reading Dev Data')
   path = f'{CACHE_DATA_DIR}/train/training_data_development.pickle'
-  dev_data = read_featurized(path)
+  dev_data = read_featurized(path, exp)
   return dev_data
 
-def get_full_data():
-  logging.info('Reading Full Data')
+def get_full_data(exp:Experiment):
+  exp.log_text('timeline','Reading Full Data')
   path = f'{CACHE_DATA_DIR}/train/training_data.pickle'
-  dev_data = read_featurized(path)
+  dev_data = read_featurized(path, exp)
   return dev_data
 
 def start_training(
@@ -48,10 +57,11 @@ def start_training(
   job_params:ModelJobParams, 
   model_class, 
   model_hyper_params, 
-  model_folder:str
+  model_folder:str,
+  exp: Experiment
 ):
   model = model_class(model_hyper_params)
-  training_job = job(job_params, model)
+  training_job = job(job_params, model, exp)
   return training_job.run_job(data, num_epochs, version=version, model_folder=model_folder)
 
 def plot_loss(train_loss:List, valid_loss:List, folder_name:str, plot_title:str, is_dev:bool):

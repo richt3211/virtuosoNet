@@ -2,22 +2,21 @@ from src.logger import init_logger
 from src.constants import CACHE_MODEL_DIR
 from src.discord_bot import sendToDiscord
 from src.models.model_writer_reader import save_checkpoint
-from dataclasses import asdict, dataclass
 from src.models.params import Params
+from dataclasses import asdict, dataclass
+from neptune.experiments import Experiment
 
 import src.old.data_process as dp
 import torch.nn as nn
 import numpy as np
 import matplotlib.pyplot as plt
 import torch 
-import logging
 import os
 import shutil
 import torch
 import random 
 import copy
 
-logger = logging.getLogger()
 
 @dataclass
 class ModelJobParams(Params):
@@ -32,24 +31,17 @@ class ModelJobParams(Params):
     batch_size:int = 1
 
     num_tempo_param:int = 1
-    num_input:int = 78
-    num_output:int = 11
     num_prime_param:int = 11
 
     device_num:int = 1 
     device = torch.device(f'cuda:{device_num}')
     is_dev:bool = False
 
-    def __post_init__(self):
-        # logging.info('Model Job Params')
-        super().__post_init__()
-        # logging.info(json.dumps(asdict(self)))
-
-
 class ModelJob():
 
-    def __init__(self, params:ModelJobParams, model:nn.Module):
+    def __init__(self, params:ModelJobParams, model:nn.Module, exp:Experiment):
         self.params = params
+        self.exp = exp
         self.feature_loss_init = {
             'tempo': [],
             'vel': [],
@@ -68,48 +60,42 @@ class ModelJob():
         try:
             type = "DEV" if self.params.is_dev else ""
             start_message = f"STARTING {self.model_name} TRAINING VERSION {version} JOB AT {num_epochs} EPOCHS FOR {type} DATA SET"
-            logging.info(start_message)
+            self.exp.log_text('timeline', start_message)
             sendToDiscord(start_message)
 
-            logging.info(f'Number of model params: {self.count_paramters()}')
-            logging.info(repr(self.model))
+            self.exp.log_text('number of model params', f'Number of model params: {self.count_paramters()}')
+            self.exp.log_text('model architecture', repr(self.model))
 
             training_loss_total, valid_loss_total = self.train(self.model, data, num_epochs, version, model_folder)
 
             end_message = f'FINISHED {self.model_name} VERSION {version} TRAINING JOB AT {num_epochs} EPOCHS FOR {type} DATA SET'
-            logging.info(end_message)
+            self.exp.log_text('timeline', end_message)
             sendToDiscord(end_message)
             return training_loss_total, valid_loss_total
         except Exception as e:
-            logging.exception("Error during training")
+            self.exp.log_text('error message', 'Error in training, stopping')
+            self.exp.stop(str(e))
             sendToDiscord("There was an error during training for the HAN BL training job, please check logs")
             raise e
 
     def train(self, model, data, num_epochs, version, model_folder):
         best_loss = float('inf')
-        training_loss_total = []
-        valid_loss_total = []
         for epoch in range(num_epochs):
             epoch_num = epoch +1
-            logging.info(f'Training Epoch {epoch_num}')
-            logging.info("")
+            self.exp.log_text('timeline', f'Training Epoch {epoch_num}')
 
             training_loss, training_feature_loss = self.train_epoch(model, data['train'])
-            # training_loss_total.extend(training_loss)
-            training_loss_total.append(np.mean(training_loss))
-            logging.info('Training Loss')
-            self.print_loss(training_feature_loss, training_loss)
+            self.exp.log_metric('training total loss', np.mean(training_loss))
+            self.log_loss(training_loss, training_feature_loss, 'train')
 
             valid_loss, valid_feature_loss = self.evaluate(model, data['valid'])
-            valid_loss_total.append(np.mean(valid_loss))
-            # valid_loss_total.extend(valid_loss)
-            logging.info('Validation loss')
-            self.print_loss(valid_feature_loss, valid_loss)
-            logging.info("")
+            self.log_loss(valid_loss, valid_feature_loss, 'valid')
 
             mean_valid_loss = np.mean(valid_loss)
             # if ((epoch_num) >= 5 and (epoch_num) % 5 == 0):
-            sendToDiscord(f'Trained model for {epoch_num} epochs with validation loss of {mean_valid_loss}')
+            log_message = f'Trained model for {epoch_num} epochs with validation loss of {mean_valid_loss}'
+            self.exp.log_text('timeline', log_message)
+            sendToDiscord(log_message)
 
             is_best = mean_valid_loss < best_loss
             best_loss = min(mean_valid_loss, best_loss)
@@ -121,10 +107,7 @@ class ModelJob():
                 'optimizer': self.optimizer.state_dict(),
                 'training_step': self.num_updated
             }, is_best, model_folder, version)
-            # }, is_best, "Transformer/TransformerEncoder", version)
-
-        return training_loss_total, valid_loss_total
-
+            self.exp.log_text('timeline', f'saving model at epoch {epoch +1} as the best model')
 
     def train_epoch(self, model, train_data):
         self.init_optimizer(model)
@@ -243,11 +226,11 @@ class ModelJob():
         batch_start, batch_end = data['slice_idx']
         batch_x, batch_y = self.handle_data_in_tensor(data['x'][batch_start:batch_end], data['y'][batch_start:batch_end])
 
-        batch_x_ = batch_x.view((self.params.batch_size, -1, self.params.num_input))
-        batch_y_ = batch_y.view((self.params.batch_size, -1, self.params.num_output))
+        batch_x_ = batch_x.view((self.params.batch_size, -1, self.params.input_size))
+        batch_y_ = batch_y.view((self.params.batch_size, -1, self.params.output_size))
 
-        batch_x = batch_x.view((-1, self.params.batch_size, self.params.num_input))
-        batch_y = batch_y.view((-1, self.params.batch_size, self.params.num_output))
+        batch_x = batch_x.view((-1, self.params.batch_size, self.params.input_size))
+        batch_y = batch_y.view((-1, self.params.batch_size, self.params.output_size))
 
         align_matched_ = torch.Tensor(data['align_matched'][batch_start:batch_end]).view((self.params.batch_size, -1, 1)).to(self.params.
         device)
@@ -360,13 +343,10 @@ class ModelJob():
 
         return x.to(self.params.device), y.to(self.params.device)
 
-    def print_loss(self, feature_loss, loss):
-        logging.info(f'Total Loss: {np.mean(loss)}')
-        loss_string = "\t"
+    def log_loss(self, total_loss: list, feature_loss: list, type:str):
+        self.exp.log_metric(f'{type} total loss', np.mean(total_loss))
         for key, value in feature_loss.items():
-            loss_string += f'{key}: {np.mean(value):.4} '
-        logging.info(loss_string)
-        logging.info("")
+            self.exp.log_metric(f'{type} {key} loss',value)
 
     def save_checkpoint(self, state, is_best, folder, version):
         folder = f'{CACHE_MODEL_DIR}/{folder}'
@@ -392,8 +372,8 @@ class ModelJob():
             if data_size == 0:
                 data_size = 1
         if target.shape != pred.shape:
-            logging.error('Error: The shape of the target and prediction for the loss calculation is different')
-            logging.error(target.shape, pred.shape)
+            self.exp.log_text('error', 'Error: The shape of the target and prediction for the loss calculation is different')
+            self.exp.log_text('error', f'{target.shape} {pred.shape}')
             sendToDiscord('There was an error with a loss calcuation, please check training logs')
             return torch.zeros(1).to(self.params.device)
         return torch.sum(((target - pred) ** 2) * aligned_status) / data_size

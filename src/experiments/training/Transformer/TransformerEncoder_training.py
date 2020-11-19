@@ -1,6 +1,8 @@
 from src.models.model_run_job import ModelJob, ModelJobParams
 from src.models.Transformer import TransformerEncoder, TransformerEncoderHyperParams
 from dataclasses import dataclass
+from neptune.experiments import Experiment
+
 import torch
 import logging
 
@@ -10,13 +12,9 @@ class TransformerEncoderJobParams(ModelJobParams):
     grad_clip:float = 0.5
     model_name:str = "TRANSFORMER ENCODER ONLY"
 
-    def __post_init__(self):
-        logging.info(f'Transformer Encoder Job params')
-        super().__post_init__()
-
 class TransformerEncoderJob(ModelJob):
-    def __init__(self, params:TransformerEncoderJobParams, model:TransformerEncoder):
-        super().__init__(params, model)
+    def __init__(self, params:TransformerEncoderJobParams, model:TransformerEncoder, exp:Experiment):
+        super().__init__(params, model, exp)
         self.params = params
 
         # self.num_key_augmentation = 1

@@ -36,3 +36,6 @@
 2020-11-18 18:37:31 - Epoch [10/100], Loss: 0.6201, Tempo: 0.1563, Vel: 0.4559, Deviation: 1.5454, Articulation: 0.4892, Pedal: 0.5961, Trill: 0.0000, KLD: 6.0459
 2020-11-18 18:41:20 - Valid Loss= 0.6273 , Tempo: 0.4092, Vel: 0.6125, Deviation: 0.4819, Articulation: 0.7752, Pedal: 0.6600, Trill: 0.0000
 2020-11-18 18:41:20 - current training step is 123014
+2020-11-18 21:01:29 - Epoch [11/100], Loss: 0.6565, Tempo: 0.1551, Vel: 0.4534, Deviation: 1.9608, Articulation: 0.4889, Pedal: 0.5946, Trill: 0.0000, KLD: 4.9877
+2020-11-18 21:05:17 - Valid Loss= 0.6307 , Tempo: 0.4702, Vel: 0.5689, Deviation: 0.4827, Articulation: 0.7625, Pedal: 0.6644, Trill: 0.0000
+2020-11-18 21:05:18 - current training step is 135328

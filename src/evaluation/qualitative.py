@@ -36,9 +36,9 @@ class QualitativeEvaluator(ModelJob):
         read_checkpoint(self.model, model_path, self.params.device_num)
         self.model.eval()
         batch_x = torch.Tensor(test_x)
-        input_x = batch_x.to(self.params.device_num).view(1, -1, self.params.num_input)
+        input_x = batch_x.to(self.params.device_num).view(1, -1, self.params.input_size)
         num_notes = len(test_x)
-        input_y = torch.zeros(1, num_notes, self.params.num_output).to(self.params.device)
+        input_y = torch.zeros(1, num_notes, self.params.output_size).to(self.params.device)
         
         total_output = self.model_inference(input_x, input_y, note_locations, num_notes)
 
