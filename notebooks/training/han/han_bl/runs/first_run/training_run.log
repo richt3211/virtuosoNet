@@ -1,0 +1,32 @@
+2020-11-17 19:11:09 - Starting training job for model HAN BL
+2020-11-17 19:11:09 - Running han bl for full data set
+2020-11-17 19:11:09 - Starting training job at 11/17/20 07:11:09
+2020-11-17 19:11:09 - Number of Network Parameters is 324043
+2020-11-17 19:11:09 - Loading the training data...
+2020-11-17 19:19:25 - number of train performances: 709 number of valid perf: 82
+2020-11-17 19:19:25 - training sample example [-1.962150341422854, -0.06717901528552674, 1.8699356872077189, 0.13782855458600415, 0.5691738323041352, -0.0476638292090852, -0.6179821514476284, -0.7241930870686905, 0.0, 0.0, 0, 0, 0, -0.5, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, -0.7, 0, 0, 0.3, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5, 0]
+2020-11-17 19:19:25 - current training step is 0
+2020-11-17 22:21:01 - Epoch [1/100], Loss: 0.9042, Tempo: 0.3862, Vel: 0.7180, Deviation: 2.4915, Articulation: 0.9161, Pedal: 0.7763, Trill: 0.0000, KLD: 22.4489
+2020-11-17 22:23:21 - Valid Loss= 0.7036 , Tempo: 0.7109, Vel: 0.6982, Deviation: 0.4817, Articulation: 0.8717, Pedal: 0.7110, Trill: 0.0000
+2020-11-17 22:23:21 - current training step is 12308
+2020-11-18 01:26:26 - Epoch [2/100], Loss: 0.8170, Tempo: 0.2560, Vel: 0.6051, Deviation: 2.4971, Articulation: 0.7029, Pedal: 0.7037, Trill: 0.0000, KLD: 31.5496
+2020-11-18 01:28:45 - Valid Loss= 0.6369 , Tempo: 0.4220, Vel: 0.6075, Deviation: 0.4877, Articulation: 0.8027, Pedal: 0.6694, Trill: 0.0000
+2020-11-18 01:28:46 - current training step is 24636
+2020-11-18 04:30:48 - Epoch [3/100], Loss: 0.7077, Tempo: 0.2126, Vel: 0.5479, Deviation: 1.7625, Articulation: 0.6284, Pedal: 0.6618, Trill: 0.0000, KLD: 35.3678
+2020-11-18 04:32:58 - Valid Loss= 0.6308 , Tempo: 0.4403, Vel: 0.5768, Deviation: 0.4751, Articulation: 0.8257, Pedal: 0.6601, Trill: 0.0000
+2020-11-18 04:32:58 - current training step is 36936
+2020-11-18 07:22:18 - Epoch [4/100], Loss: 0.6541, Tempo: 0.1853, Vel: 0.5187, Deviation: 1.4067, Articulation: 0.5937, Pedal: 0.6415, Trill: 0.0000, KLD: 34.7423
+2020-11-18 07:24:30 - Valid Loss= 0.6134 , Tempo: 0.3053, Vel: 0.5839, Deviation: 0.4686, Articulation: 0.7660, Pedal: 0.6605, Trill: 0.0000
+2020-11-18 07:24:30 - current training step is 49218
+2020-11-18 10:13:59 - Epoch [5/100], Loss: 0.6780, Tempo: 0.1688, Vel: 0.4975, Deviation: 1.8104, Articulation: 0.5699, Pedal: 0.6301, Trill: 0.0000, KLD: 33.0978
+2020-11-18 10:16:11 - Valid Loss= 0.6069 , Tempo: 0.2708, Vel: 0.5579, Deviation: 0.4788, Articulation: 0.8328, Pedal: 0.6479, Trill: 0.0000
+2020-11-18 10:16:11 - current training step is 61494
+2020-11-18 13:05:39 - Epoch [6/100], Loss: 0.6583, Tempo: 0.1564, Vel: 0.4820, Deviation: 1.6966, Articulation: 0.5518, Pedal: 0.6220, Trill: 0.0000, KLD: 31.0912
+2020-11-18 13:07:52 - Valid Loss= 0.6056 , Tempo: 0.3056, Vel: 0.5555, Deviation: 0.4975, Articulation: 0.7759, Pedal: 0.6467, Trill: 0.0000
+2020-11-18 13:07:52 - current training step is 73788
+2020-11-18 16:01:57 - Epoch [7/100], Loss: 0.6886, Tempo: 0.1495, Vel: 0.4691, Deviation: 2.1281, Articulation: 0.5379, Pedal: 0.6127, Trill: 0.0000, KLD: 27.7063
+2020-11-18 16:04:14 - Valid Loss= 0.6139 , Tempo: 0.3059, Vel: 0.5792, Deviation: 0.4977, Articulation: 0.7534, Pedal: 0.6594, Trill: 0.0000
+2020-11-18 16:04:14 - current training step is 86058
+2020-11-18 19:10:56 - Epoch [8/100], Loss: 0.6820, Tempo: 0.1430, Vel: 0.4606, Deviation: 2.1312, Articulation: 0.5261, Pedal: 0.6056, Trill: 0.0000, KLD: 22.4762
+2020-11-18 19:13:26 - Valid Loss= 0.6055 , Tempo: 0.2971, Vel: 0.5321, Deviation: 0.5005, Articulation: 0.7588, Pedal: 0.6529, Trill: 0.0000
+2020-11-18 19:13:26 - current training step is 98420

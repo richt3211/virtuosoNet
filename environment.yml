@@ -10,8 +10,14 @@ dependencies:
     - scipy
     - pixiedust
     - music21
+    - neptune-client
+    - neptune-notebooks
+    - nodejs
+    - jupyterlab
+    - psutil
 channels:
     - pytorch
+    - anaconda
     - conda-forge
     - defaults
     - roebel

@@ -1,0 +1,919 @@
+2020-11-10 08:25:21 - Starting training job for model LSTM Baseline
+2020-11-10 08:25:21 - Starting off with a 3 layer bi-directional lstm with a single linear layer at the end
+2020-11-10 08:25:22 - LSTM Baseline Hyper Params
+2020-11-10 08:25:22 - {
+    "input_size": 78,
+    "output_size": 11,
+    "num_layers": 3,
+    "hidden_size": 256,
+    "dropout": 0.5
+}
+2020-11-10 08:25:22 - LSTM Baseline Training Job Params
+2020-11-10 08:25:22 - {
+    "input_size": true,
+    "output_size": 11,
+    "qpm_index": 0,
+    "vel_param_idx": 0,
+    "dev_param_idx": 2,
+    "articul_param_idx": 3,
+    "pedal_param_idx": 4,
+    "time_steps": 500,
+    "num_key_augmentation": 1,
+    "batch_size": 1,
+    "num_tempo_param": 1,
+    "num_input": 78,
+    "num_output": 11,
+    "num_prime_param": 11,
+    "device_num": 1,
+    "is_dev": false,
+    "learning_rate": 0.1,
+    "grad_clip": 0.5
+}
+2020-11-10 08:26:55 - Reading Dev Data
+2020-11-10 08:26:55 - Loading the training data
+2020-11-10 08:26:59 - number of train performances: 5 number of valid perf: 3
+2020-11-10 08:26:59 - training sample example: [0.40253450874098085, -0.9043350534864922, 2.272152234854334, 1.6245242470007877, 1.2609703359796316, -0.13802735400033747, -0.8957452833471335, -0.8172526447037678, 0.0, 0.0, -1, 0, 0, 0.25, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, 0.4, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5, 0]
+2020-11-10 08:29:32 - STARTING None TRAINING VERSION 0.1 JOB AT 20 EPOCHS FOR  DATA SET
+2020-11-10 08:29:33 - Number of model params: 3844875
+2020-11-10 08:29:33 - LSTMBaseline(
+  (lstm_encoder): LSTM(78, 256, num_layers=3, dropout=0.5, bidirectional=True)
+  (decoder): Linear(in_features=256, out_features=11, bias=True)
+)
+2020-11-10 08:29:33 - Training Epoch 1
+2020-11-10 08:29:33 - 
+2020-11-10 08:29:33 - Error during training
+Traceback (most recent call last):
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/src/models/model_run_job.py", line 77, in run_job
+    training_loss_total, valid_loss_total = self.train(self.model, data, num_epochs, version)
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/src/models/model_run_job.py", line 97, in train
+    training_loss, training_feature_loss = self.train_epoch(model, data['train'])
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/src/models/model_run_job.py", line 163, in train_epoch
+    self.run_for_performance(training_data, model, feature_loss, total_loss, train=True)
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/src/models/model_run_job.py", line 196, in run_for_performance
+    self.batch_time_step_run(data, model, feature_loss, total_loss, train)
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/src/models/model_run_job.py", line 274, in batch_time_step_run
+    outputs = model(batch_x)
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/env/lib/python3.7/site-packages/torch/nn/modules/module.py", line 727, in _call_impl
+    result = self.forward(*input, **kwargs)
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/src/models/BL.py", line 45, in forward
+    out = self.decoder(lstm_out)
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/env/lib/python3.7/site-packages/torch/nn/modules/module.py", line 727, in _call_impl
+    result = self.forward(*input, **kwargs)
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/env/lib/python3.7/site-packages/torch/nn/modules/linear.py", line 93, in forward
+    return F.linear(input, self.weight, self.bias)
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/env/lib/python3.7/site-packages/torch/nn/functional.py", line 1688, in linear
+    if input.dim() == 2 and bias is not None:
+AttributeError: 'tuple' object has no attribute 'dim'
+2020-11-10 08:33:10 - STARTING None TRAINING VERSION 0.1 JOB AT 20 EPOCHS FOR  DATA SET
+2020-11-10 08:33:10 - Number of model params: 3844875
+2020-11-10 08:33:10 - LSTMBaseline(
+  (lstm_encoder): LSTM(78, 256, num_layers=3, dropout=0.5, bidirectional=True)
+  (decoder): Linear(in_features=256, out_features=11, bias=True)
+)
+2020-11-10 08:33:10 - Training Epoch 1
+2020-11-10 08:33:10 - 
+2020-11-10 08:33:11 - Error during training
+Traceback (most recent call last):
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/src/models/model_run_job.py", line 77, in run_job
+    training_loss_total, valid_loss_total = self.train(self.model, data, num_epochs, version)
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/src/models/model_run_job.py", line 97, in train
+    training_loss, training_feature_loss = self.train_epoch(model, data['train'])
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/src/models/model_run_job.py", line 163, in train_epoch
+    self.run_for_performance(training_data, model, feature_loss, total_loss, train=True)
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/src/models/model_run_job.py", line 196, in run_for_performance
+    self.batch_time_step_run(data, model, feature_loss, total_loss, train)
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/src/models/model_run_job.py", line 274, in batch_time_step_run
+    outputs = model(batch_x)
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/env/lib/python3.7/site-packages/torch/nn/modules/module.py", line 727, in _call_impl
+    result = self.forward(*input, **kwargs)
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/src/models/BL.py", line 45, in forward
+    out = self.decoder(lstm_out)
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/env/lib/python3.7/site-packages/torch/nn/modules/module.py", line 727, in _call_impl
+    result = self.forward(*input, **kwargs)
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/env/lib/python3.7/site-packages/torch/nn/modules/linear.py", line 93, in forward
+    return F.linear(input, self.weight, self.bias)
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/env/lib/python3.7/site-packages/torch/nn/functional.py", line 1692, in linear
+    output = input.matmul(weight.t())
+RuntimeError: mat1 dim 1 must match mat2 dim 0
+2020-11-10 08:40:48 - STARTING None TRAINING VERSION 0.1 JOB AT 20 EPOCHS FOR  DATA SET
+2020-11-10 08:40:49 - Number of model params: 3847691
+2020-11-10 08:40:49 - LSTMBaseline(
+  (lstm_encoder): LSTM(78, 256, num_layers=3, dropout=0.5, bidirectional=True)
+  (decoder): Linear(in_features=512, out_features=11, bias=True)
+)
+2020-11-10 08:40:49 - Training Epoch 1
+2020-11-10 08:40:49 - 
+2020-11-10 08:41:02 - Training Loss
+2020-11-10 08:41:02 - Total Loss: 27.554382596992784
+2020-11-10 08:41:02 - 	tempo: 37.74 vel: 33.39 dev: 19.23 articul: 19.15 pedal: 27.65 trill: 0.0 kld: nan 
+2020-11-10 08:41:02 - 
+2020-11-10 08:41:03 - Validation loss
+2020-11-10 08:41:03 - Total Loss: 1.6489640474319458
+2020-11-10 08:41:03 - 	tempo: 3.858 vel: 2.689 dev: 1.195 articul: 1.207 pedal: 1.313 trill: 0.0 kld: nan 
+2020-11-10 08:41:03 - 
+2020-11-10 08:41:03 - 
+2020-11-10 08:41:03 - Training Epoch 2
+2020-11-10 08:41:03 - 
+2020-11-10 08:41:18 - Training Loss
+2020-11-10 08:41:18 - Total Loss: 31.60722488792319
+2020-11-10 08:41:18 - 	tempo: 32.29 vel: 32.69 dev: 31.09 articul: 33.52 pedal: 31.16 trill: 0.0 kld: nan 
+2020-11-10 08:41:18 - 
+2020-11-10 08:41:18 - Validation loss
+2020-11-10 08:41:18 - Total Loss: 2.4594986041386924
+2020-11-10 08:41:18 - 	tempo: 4.907 vel: 3.149 dev: 1.132 articul: 0.63 pedal: 2.462 trill: 0.0 kld: nan 
+2020-11-10 08:41:18 - 
+2020-11-10 08:41:18 - 
+2020-11-10 08:41:19 - Training Epoch 3
+2020-11-10 08:41:19 - 
+2020-11-10 08:41:32 - Training Loss
+2020-11-10 08:41:32 - Total Loss: 31.590897830381785
+2020-11-10 08:41:32 - 	tempo: 32.6 vel: 33.4 dev: 32.39 articul: 32.93 pedal: 30.88 trill: 0.0 kld: nan 
+2020-11-10 08:41:32 - 
+2020-11-10 08:41:32 - Validation loss
+2020-11-10 08:41:32 - Total Loss: 1.409981906414032
+2020-11-10 08:41:32 - 	tempo: 2.755 vel: 1.875 dev: 0.7903 articul: 1.262 pedal: 1.261 trill: 0.0 kld: nan 
+2020-11-10 08:41:32 - 
+2020-11-10 08:41:32 - 
+2020-11-10 08:41:33 - Training Epoch 4
+2020-11-10 08:41:33 - 
+2020-11-10 08:41:47 - Training Loss
+2020-11-10 08:41:47 - Total Loss: 32.016342086163725
+2020-11-10 08:41:47 - 	tempo: 31.46 vel: 31.4 dev: 32.08 articul: 33.87 pedal: 31.91 trill: 0.0 kld: nan 
+2020-11-10 08:41:47 - 
+2020-11-10 08:41:47 - Validation loss
+2020-11-10 08:41:47 - Total Loss: 2.116205016771952
+2020-11-10 08:41:47 - 	tempo: 6.086 vel: 3.793 dev: 1.155 articul: 1.252 pedal: 1.57 trill: 0.0 kld: nan 
+2020-11-10 08:41:47 - 
+2020-11-10 08:41:47 - 
+2020-11-10 08:41:47 - Training Epoch 5
+2020-11-10 08:41:47 - 
+2020-11-10 08:42:02 - Training Loss
+2020-11-10 08:42:02 - Total Loss: 29.904590613948994
+2020-11-10 08:42:02 - 	tempo: 29.22 vel: 30.48 dev: 30.12 articul: 32.75 pedal: 29.48 trill: 0.0 kld: nan 
+2020-11-10 08:42:02 - 
+2020-11-10 08:42:02 - Validation loss
+2020-11-10 08:42:02 - Total Loss: 2.0665345390637717
+2020-11-10 08:42:02 - 	tempo: 6.305 vel: 4.299 dev: 1.109 articul: 0.4118 pedal: 1.515 trill: 0.0 kld: nan 
+2020-11-10 08:42:02 - 
+2020-11-10 08:42:02 - 
+2020-11-10 08:42:03 - Training Epoch 6
+2020-11-10 08:42:03 - 
+2020-11-10 08:42:15 - Training Loss
+2020-11-10 08:42:15 - Total Loss: 30.660328180382127
+2020-11-10 08:42:15 - 	tempo: 30.08 vel: 30.66 dev: 31.11 articul: 30.91 pedal: 30.64 trill: 0.0 kld: nan 
+2020-11-10 08:42:15 - 
+2020-11-10 08:42:16 - Validation loss
+2020-11-10 08:42:16 - Total Loss: 2.2828982869784036
+2020-11-10 08:42:16 - 	tempo: 6.347 vel: 4.052 dev: 1.175 articul: 0.4074 pedal: 1.876 trill: 0.0 kld: nan 
+2020-11-10 08:42:16 - 
+2020-11-10 08:42:16 - 
+2020-11-10 08:42:16 - Training Epoch 7
+2020-11-10 08:42:16 - 
+2020-11-10 08:42:29 - Training Loss
+2020-11-10 08:42:29 - Total Loss: 30.431623460849128
+2020-11-10 08:42:29 - 	tempo: 30.56 vel: 31.65 dev: 31.32 articul: 31.37 pedal: 29.98 trill: 0.0 kld: nan 
+2020-11-10 08:42:29 - 
+2020-11-10 08:42:29 - Validation loss
+2020-11-10 08:42:29 - Total Loss: 2.035073697566986
+2020-11-10 08:42:29 - 	tempo: 4.935 vel: 3.053 dev: 0.8604 articul: 0.5686 pedal: 1.853 trill: 0.0 kld: nan 
+2020-11-10 08:42:29 - 
+2020-11-10 08:42:29 - 
+2020-11-10 08:42:29 - Training Epoch 8
+2020-11-10 08:42:29 - 
+2020-11-10 08:42:42 - Training Loss
+2020-11-10 08:42:42 - Total Loss: 30.700107423882734
+2020-11-10 08:42:42 - 	tempo: 31.11 vel: 32.44 dev: 31.94 articul: 32.08 pedal: 30.02 trill: 0.0 kld: nan 
+2020-11-10 08:42:42 - 
+2020-11-10 08:42:42 - Validation loss
+2020-11-10 08:42:42 - Total Loss: 2.307486414909363
+2020-11-10 08:42:42 - 	tempo: 5.563 vel: 3.359 dev: 0.9751 articul: 0.4664 pedal: 2.145 trill: 0.0 kld: nan 
+2020-11-10 08:42:42 - 
+2020-11-10 08:42:42 - 
+2020-11-10 08:42:42 - Training Epoch 9
+2020-11-10 08:42:42 - 
+2020-11-10 08:42:54 - Training Loss
+2020-11-10 08:42:54 - Total Loss: 30.3299361659508
+2020-11-10 08:42:54 - 	tempo: 30.61 vel: 32.14 dev: 31.55 articul: 31.73 pedal: 29.66 trill: 0.0 kld: nan 
+2020-11-10 08:42:54 - 
+2020-11-10 08:42:55 - Validation loss
+2020-11-10 08:42:55 - Total Loss: 2.386118253072103
+2020-11-10 08:42:55 - 	tempo: 6.038 vel: 3.63 dev: 1.104 articul: 0.4339 pedal: 2.149 trill: 0.0 kld: nan 
+2020-11-10 08:42:55 - 
+2020-11-10 08:42:55 - 
+2020-11-10 08:42:55 - Training Epoch 10
+2020-11-10 08:42:55 - 
+2020-11-10 08:43:06 - Training Loss
+2020-11-10 08:43:06 - Total Loss: 31.563873958097744
+2020-11-10 08:43:06 - 	tempo: 31.9 vel: 33.37 dev: 32.37 articul: 32.41 pedal: 31.02 trill: 0.0 kld: nan 
+2020-11-10 08:43:06 - 
+2020-11-10 08:43:07 - Validation loss
+2020-11-10 08:43:07 - Total Loss: 1.4567882617314656
+2020-11-10 08:43:07 - 	tempo: 2.713 vel: 1.876 dev: 0.8078 articul: 1.331 pedal: 1.328 trill: 0.0 kld: nan 
+2020-11-10 08:43:07 - 
+2020-11-10 08:43:07 - 
+2020-11-10 08:43:07 - Training Epoch 11
+2020-11-10 08:43:07 - 
+2020-11-10 08:43:19 - Training Loss
+2020-11-10 08:43:19 - Total Loss: 32.68069486136306
+2020-11-10 08:43:19 - 	tempo: 31.88 vel: 31.41 dev: 32.42 articul: 34.73 pedal: 32.72 trill: 0.0 kld: nan 
+2020-11-10 08:43:19 - 
+2020-11-10 08:43:20 - Validation loss
+2020-11-10 08:43:20 - Total Loss: 1.9038753310839336
+2020-11-10 08:43:20 - 	tempo: 6.891 vel: 4.183 dev: 1.355 articul: 1.444 pedal: 1.01 trill: 0.0 kld: nan 
+2020-11-10 08:43:20 - 
+2020-11-10 08:43:20 - 
+2020-11-10 08:43:20 - Training Epoch 12
+2020-11-10 08:43:20 - 
+2020-11-10 08:43:31 - Training Loss
+2020-11-10 08:43:31 - Total Loss: 31.057604913974735
+2020-11-10 08:43:31 - 	tempo: 29.39 vel: 30.8 dev: 30.12 articul: 33.4 pedal: 31.13 trill: 0.0 kld: nan 
+2020-11-10 08:43:31 - 
+2020-11-10 08:43:32 - Validation loss
+2020-11-10 08:43:32 - Total Loss: 2.3319416840871177
+2020-11-10 08:43:32 - 	tempo: 7.088 vel: 4.536 dev: 1.281 articul: 0.4246 pedal: 1.76 trill: 0.0 kld: nan 
+2020-11-10 08:43:32 - 
+2020-11-10 08:43:32 - 
+2020-11-10 08:43:32 - Training Epoch 13
+2020-11-10 08:43:32 - 
+2020-11-10 08:43:47 - Training Loss
+2020-11-10 08:43:47 - Total Loss: 29.712590708361045
+2020-11-10 08:43:47 - 	tempo: 28.99 vel: 29.86 dev: 30.21 articul: 30.57 pedal: 29.6 trill: 0.0 kld: nan 
+2020-11-10 08:43:47 - 
+2020-11-10 08:43:47 - Validation loss
+2020-11-10 08:43:47 - Total Loss: 2.3919594287872314
+2020-11-10 08:43:47 - 	tempo: 6.746 vel: 4.59 dev: 1.28 articul: 0.4012 pedal: 1.899 trill: 0.0 kld: nan 
+2020-11-10 08:43:47 - 
+2020-11-10 08:43:47 - 
+2020-11-10 08:43:47 - Training Epoch 14
+2020-11-10 08:43:47 - 
+2020-11-10 08:44:01 - Training Loss
+2020-11-10 08:44:01 - Total Loss: 31.36390437696078
+2020-11-10 08:44:01 - 	tempo: 31.4 vel: 32.06 dev: 31.97 articul: 31.91 pedal: 31.09 trill: 0.0 kld: nan 
+2020-11-10 08:44:01 - 
+2020-11-10 08:44:02 - Validation loss
+2020-11-10 08:44:02 - Total Loss: 1.3730451663335164
+2020-11-10 08:44:02 - 	tempo: 2.672 vel: 1.825 dev: 0.802 articul: 1.157 pedal: 1.236 trill: 0.0 kld: nan 
+2020-11-10 08:44:02 - 
+2020-11-10 08:44:02 - 
+2020-11-10 08:44:02 - Training Epoch 15
+2020-11-10 08:44:02 - 
+2020-11-10 08:44:16 - Training Loss
+2020-11-10 08:44:16 - Total Loss: 32.478229360805976
+2020-11-10 08:44:16 - 	tempo: 31.5 vel: 31.3 dev: 31.99 articul: 34.23 pedal: 32.61 trill: 0.0 kld: nan 
+2020-11-10 08:44:16 - 
+2020-11-10 08:44:17 - Validation loss
+2020-11-10 08:44:17 - Total Loss: 1.913156767686208
+2020-11-10 08:44:17 - 	tempo: 5.919 vel: 3.667 dev: 1.113 articul: 1.406 pedal: 1.277 trill: 0.0 kld: nan 
+2020-11-10 08:44:17 - 
+2020-11-10 08:44:17 - 
+2020-11-10 08:44:17 - Training Epoch 16
+2020-11-10 08:44:17 - 
+2020-11-10 08:44:32 - Training Loss
+2020-11-10 08:44:32 - Total Loss: 30.861529481875433
+2020-11-10 08:44:32 - 	tempo: 30.19 vel: 31.45 dev: 30.69 articul: 33.12 pedal: 30.58 trill: 0.0 kld: nan 
+2020-11-10 08:44:32 - 
+2020-11-10 08:44:33 - Validation loss
+2020-11-10 08:44:33 - Total Loss: 2.542953888575236
+2020-11-10 08:44:33 - 	tempo: 7.146 vel: 4.702 dev: 1.253 articul: 0.467 pedal: 2.058 trill: 0.0 kld: nan 
+2020-11-10 08:44:33 - 
+2020-11-10 08:44:33 - 
+2020-11-10 08:44:33 - Training Epoch 17
+2020-11-10 08:44:33 - 
+2020-11-10 08:44:46 - Training Loss
+2020-11-10 08:44:46 - Total Loss: 31.05864830498826
+2020-11-10 08:44:46 - 	tempo: 30.9 vel: 31.77 dev: 31.79 articul: 32.66 pedal: 30.65 trill: 0.0 kld: nan 
+2020-11-10 08:44:46 - 
+2020-11-10 08:44:47 - Validation loss
+2020-11-10 08:44:47 - Total Loss: 1.4421621163686116
+2020-11-10 08:44:47 - 	tempo: 3.008 vel: 1.993 dev: 0.7732 articul: 1.167 pedal: 1.275 trill: 0.0 kld: nan 
+2020-11-10 08:44:47 - 
+2020-11-10 08:44:47 - 
+2020-11-10 08:44:47 - Training Epoch 18
+2020-11-10 08:44:47 - 
+2020-11-10 08:47:44 - Starting training job for model LSTM Baseline
+2020-11-10 08:47:44 - Starting off with a 3 layer bi-directional lstm with a single linear layer at the end
+2020-11-10 08:47:47 - LSTM Baseline Hyper Params
+2020-11-10 08:47:47 - {
+    "input_size": 78,
+    "output_size": 11,
+    "num_layers": 3,
+    "hidden_size": 256,
+    "dropout": 0.5
+}
+2020-11-10 08:47:47 - LSTM Baseline Training Job Params
+2020-11-10 08:47:47 - {
+    "input_size": true,
+    "output_size": 11,
+    "qpm_index": 0,
+    "vel_param_idx": 0,
+    "dev_param_idx": 2,
+    "articul_param_idx": 3,
+    "pedal_param_idx": 4,
+    "time_steps": 500,
+    "num_key_augmentation": 1,
+    "batch_size": 1,
+    "num_tempo_param": 1,
+    "num_input": 78,
+    "num_output": 11,
+    "num_prime_param": 11,
+    "device_num": 1,
+    "is_dev": false,
+    "learning_rate": 0.1,
+    "grad_clip": 0.5
+}
+2020-11-10 08:47:50 - Reading Dev Data
+2020-11-10 08:47:50 - Loading the training data
+2020-11-10 08:47:55 - number of train performances: 5 number of valid perf: 3
+2020-11-10 08:47:55 - training sample example: [0.40253450874098085, -0.9043350534864922, 2.272152234854334, 1.6245242470007877, 1.2609703359796316, -0.13802735400033747, -0.8957452833471335, -0.8172526447037678, 0.0, 0.0, -1, 0, 0, 0.25, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, 0.4, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5, 0]
+2020-11-10 08:49:05 - STARTING None TRAINING VERSION 0.1 JOB AT 20 EPOCHS FOR  DATA SET
+2020-11-10 08:49:06 - Number of model params: 3847691
+2020-11-10 08:49:06 - LSTMBaseline(
+  (lstm_encoder): LSTM(78, 256, num_layers=3, dropout=0.5, bidirectional=True)
+  (decoder): Linear(in_features=512, out_features=11, bias=True)
+)
+2020-11-10 08:49:06 - Training Epoch 1
+2020-11-10 08:49:06 - 
+2020-11-10 08:49:20 - Training Loss
+2020-11-10 08:49:20 - Total Loss: 26.508048821687698
+2020-11-10 08:49:20 - 	tempo: 36.48 vel: 31.86 dev: 21.69 articul: 11.54 pedal: 27.15 trill: 0.0 kld: nan 
+2020-11-10 08:49:20 - 
+2020-11-10 08:49:20 - Validation loss
+2020-11-10 08:49:20 - Total Loss: 1.8754899501800537
+2020-11-10 08:49:20 - 	tempo: 6.183 vel: 4.282 dev: 1.15 articul: 0.4126 pedal: 1.229 trill: 0.0 kld: nan 
+2020-11-10 08:49:20 - 
+2020-11-10 08:49:20 - 
+2020-11-10 08:49:20 - Error during training
+Traceback (most recent call last):
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/src/models/model_run_job.py", line 77, in run_job
+    training_loss_total, valid_loss_total = self.train(self.model, data, num_epochs, version, model_folder)
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/src/models/model_run_job.py", line 123, in train
+    }, is_best, model_folder, version)
+  File "/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/src/models/model_run_job.py", line 374, in save_checkpoint
+    os.mkdir(folder)
+FileNotFoundError: [Errno 2] No such file or directory: '/uusoc/exports/scratch/rtimpson/thesis/virtuosoNet/models/bl/lstm'
+2020-11-10 08:50:39 - STARTING None TRAINING VERSION 0.1 JOB AT 20 EPOCHS FOR  DATA SET
+2020-11-10 08:50:39 - Number of model params: 3847691
+2020-11-10 08:50:39 - LSTMBaseline(
+  (lstm_encoder): LSTM(78, 256, num_layers=3, dropout=0.5, bidirectional=True)
+  (decoder): Linear(in_features=512, out_features=11, bias=True)
+)
+2020-11-10 08:50:39 - Training Epoch 1
+2020-11-10 08:50:39 - 
+2020-11-10 08:50:53 - Training Loss
+2020-11-10 08:50:53 - Total Loss: 26.78248371889717
+2020-11-10 08:50:53 - 	tempo: 36.89 vel: 33.43 dev: 23.73 articul: 10.18 pedal: 27.2 trill: 0.0 kld: nan 
+2020-11-10 08:50:53 - 
+2020-11-10 08:50:53 - Validation loss
+2020-11-10 08:50:53 - Total Loss: 2.1506349245707193
+2020-11-10 08:50:53 - 	tempo: 6.476 vel: 4.342 dev: 1.138 articul: 1.066 pedal: 1.519 trill: 0.0 kld: nan 
+2020-11-10 08:50:53 - 
+2020-11-10 08:50:53 - 
+2020-11-10 08:50:54 - Training Epoch 2
+2020-11-10 08:50:54 - 
+2020-11-10 08:51:07 - Training Loss
+2020-11-10 08:51:07 - Total Loss: 30.878850502403157
+2020-11-10 08:51:07 - 	tempo: 29.83 vel: 30.71 dev: 30.76 articul: 33.0 pedal: 30.77 trill: 0.0 kld: nan 
+2020-11-10 08:51:07 - 
+2020-11-10 08:51:07 - Validation loss
+2020-11-10 08:51:07 - Total Loss: 2.2449180285135903
+2020-11-10 08:51:07 - 	tempo: 6.3 vel: 4.237 dev: 1.08 articul: 0.6443 pedal: 1.776 trill: 0.0 kld: nan 
+2020-11-10 08:51:07 - 
+2020-11-10 08:51:07 - 
+2020-11-10 08:51:08 - Training Epoch 3
+2020-11-10 08:51:08 - 
+2020-11-10 08:51:20 - Training Loss
+2020-11-10 08:51:20 - Total Loss: 30.369307012150163
+2020-11-10 08:51:20 - 	tempo: 29.5 vel: 30.17 dev: 30.52 articul: 31.34 pedal: 30.36 trill: 0.0 kld: nan 
+2020-11-10 08:51:20 - 
+2020-11-10 08:51:21 - Validation loss
+2020-11-10 08:51:21 - Total Loss: 2.3516172965367637
+2020-11-10 08:51:21 - 	tempo: 6.548 vel: 4.216 dev: 1.072 articul: 0.5223 pedal: 1.93 trill: 0.0 kld: nan 
+2020-11-10 08:51:21 - 
+2020-11-10 08:51:21 - 
+2020-11-10 08:51:21 - Training Epoch 4
+2020-11-10 08:51:21 - 
+2020-11-10 08:51:33 - Training Loss
+2020-11-10 08:51:33 - Total Loss: 31.23201480950858
+2020-11-10 08:51:33 - 	tempo: 30.56 vel: 31.49 dev: 31.44 articul: 31.67 pedal: 31.2 trill: 0.0 kld: nan 
+2020-11-10 08:51:33 - 
+2020-11-10 08:51:33 - Validation loss
+2020-11-10 08:51:33 - Total Loss: 1.622412085533142
+2020-11-10 08:51:33 - 	tempo: 3.688 vel: 2.354 dev: 0.7571 articul: 0.9643 pedal: 1.44 trill: 0.0 kld: nan 
+2020-11-10 08:51:33 - 
+2020-11-10 08:51:33 - 
+2020-11-10 08:51:34 - Training Epoch 5
+2020-11-10 08:51:34 - 
+2020-11-10 08:51:46 - Training Loss
+2020-11-10 08:51:46 - Total Loss: 30.55805424443985
+2020-11-10 08:51:46 - 	tempo: 31.18 vel: 32.31 dev: 31.32 articul: 32.24 pedal: 29.87 trill: 0.0 kld: nan 
+2020-11-10 08:51:46 - 
+2020-11-10 08:51:46 - Validation loss
+2020-11-10 08:51:46 - Total Loss: 1.980017602443695
+2020-11-10 08:51:46 - 	tempo: 4.087 vel: 2.584 dev: 0.7702 articul: 0.5429 pedal: 1.971 trill: 0.0 kld: nan 
+2020-11-10 08:51:46 - 
+2020-11-10 08:51:46 - 
+2020-11-10 08:51:47 - Training Epoch 6
+2020-11-10 08:51:47 - 
+2020-11-10 08:51:59 - Training Loss
+2020-11-10 08:51:59 - Total Loss: 29.878433346748352
+2020-11-10 08:51:59 - 	tempo: 30.71 vel: 31.95 dev: 31.16 articul: 30.76 pedal: 29.15 trill: 0.0 kld: nan 
+2020-11-10 08:51:59 - 
+2020-11-10 08:51:59 - Validation loss
+2020-11-10 08:51:59 - Total Loss: 2.292495906352997
+2020-11-10 08:51:59 - 	tempo: 6.474 vel: 4.164 dev: 0.7636 articul: 0.3995 pedal: 1.917 trill: 0.0 kld: nan 
+2020-11-10 08:51:59 - 
+2020-11-10 08:51:59 - 
+2020-11-10 08:52:00 - Training Epoch 7
+2020-11-10 08:52:00 - 
+2020-11-10 08:52:12 - Training Loss
+2020-11-10 08:52:12 - Total Loss: 29.541234928918513
+2020-11-10 08:52:12 - 	tempo: 29.27 vel: 30.17 dev: 31.07 articul: 30.33 pedal: 29.16 trill: 0.0 kld: nan 
+2020-11-10 08:52:12 - 
+2020-11-10 08:52:12 - Validation loss
+2020-11-10 08:52:12 - Total Loss: 2.5970800320307412
+2020-11-10 08:52:12 - 	tempo: 6.183 vel: 3.892 dev: 0.7593 articul: 0.4083 pedal: 2.475 trill: 0.0 kld: nan 
+2020-11-10 08:52:12 - 
+2020-11-10 08:52:12 - 
+2020-11-10 08:52:12 - Training Epoch 8
+2020-11-10 08:52:12 - 
+2020-11-10 08:52:24 - Training Loss
+2020-11-10 08:52:24 - Total Loss: 29.741722996234895
+2020-11-10 08:52:24 - 	tempo: 29.95 vel: 30.99 dev: 31.89 articul: 30.67 pedal: 29.09 trill: 0.0 kld: nan 
+2020-11-10 08:52:24 - 
+2020-11-10 08:52:25 - Validation loss
+2020-11-10 08:52:25 - Total Loss: 2.1416231393814087
+2020-11-10 08:52:25 - 	tempo: 4.978 vel: 3.123 dev: 0.9469 articul: 0.5489 pedal: 1.995 trill: 0.0 kld: nan 
+2020-11-10 08:52:25 - 
+2020-11-10 08:52:25 - 
+2020-11-10 08:52:25 - Training Epoch 9
+2020-11-10 08:52:25 - 
+2020-11-10 08:52:31 - LSTM Baseline Hyper Params
+2020-11-10 08:52:31 - {
+    "input_size": 78,
+    "output_size": 11,
+    "num_layers": 3,
+    "hidden_size": 256,
+    "dropout": 0.5
+}
+2020-11-10 08:52:31 - LSTM Baseline Training Job Params
+2020-11-10 08:52:31 - {
+    "input_size": 78,
+    "output_size": 11,
+    "qpm_index": 0,
+    "vel_param_idx": 0,
+    "dev_param_idx": 2,
+    "articul_param_idx": 3,
+    "pedal_param_idx": 4,
+    "time_steps": 500,
+    "num_key_augmentation": 1,
+    "batch_size": 1,
+    "num_tempo_param": 1,
+    "num_input": 78,
+    "num_output": 11,
+    "num_prime_param": 11,
+    "device_num": 1,
+    "is_dev": true,
+    "learning_rate": 0.1,
+    "grad_clip": 0.5
+}
+2020-11-10 08:52:43 - LSTM Baseline Hyper Params
+2020-11-10 08:52:43 - {
+    "input_size": 78,
+    "output_size": 11,
+    "num_layers": 3,
+    "hidden_size": 256,
+    "dropout": 0.5
+}
+2020-11-10 08:52:43 - LSTM Baseline Training Job Params
+2020-11-10 08:52:43 - {
+    "input_size": 78,
+    "output_size": 11,
+    "qpm_index": 0,
+    "vel_param_idx": 0,
+    "dev_param_idx": 2,
+    "articul_param_idx": 3,
+    "pedal_param_idx": 4,
+    "time_steps": 500,
+    "num_key_augmentation": 1,
+    "batch_size": 1,
+    "num_tempo_param": 1,
+    "num_input": 78,
+    "num_output": 11,
+    "num_prime_param": 11,
+    "device_num": 1,
+    "is_dev": true,
+    "learning_rate": 0.1,
+    "grad_clip": 0.5
+}
+2020-11-10 08:52:50 - STARTING None TRAINING VERSION 0.1 JOB AT 20 EPOCHS FOR DEV DATA SET
+2020-11-10 08:52:50 - Number of model params: 3847691
+2020-11-10 08:52:50 - LSTMBaseline(
+  (lstm_encoder): LSTM(78, 256, num_layers=3, dropout=0.5, bidirectional=True)
+  (decoder): Linear(in_features=512, out_features=11, bias=True)
+)
+2020-11-10 08:52:50 - Training Epoch 1
+2020-11-10 08:52:50 - 
+2020-11-10 08:53:03 - Training Loss
+2020-11-10 08:53:03 - Total Loss: 27.585130404233933
+2020-11-10 08:53:03 - 	tempo: 38.97 vel: 35.32 dev: 13.16 articul: 9.675 pedal: 29.47 trill: 0.0 kld: nan 
+2020-11-10 08:53:03 - 
+2020-11-10 08:53:03 - Validation loss
+2020-11-10 08:53:03 - Total Loss: 2.1317731142044067
+2020-11-10 08:53:03 - 	tempo: 6.681 vel: 4.644 dev: 0.7606 articul: 0.7283 pedal: 1.519 trill: 0.0 kld: nan 
+2020-11-10 08:53:03 - 
+2020-11-10 08:53:03 - 
+2020-11-10 08:53:03 - Training Epoch 2
+2020-11-10 08:53:03 - 
+2020-11-10 08:53:49 - Starting training job for model LSTM Baseline
+2020-11-10 08:53:49 - Changing to uni-directional
+2020-11-10 08:53:53 - LSTM Baseline Hyper Params
+2020-11-10 08:53:53 - {
+    "input_size": 78,
+    "output_size": 11,
+    "num_layers": 3,
+    "hidden_size": 256,
+    "dropout": 0.5
+}
+2020-11-10 08:53:53 - LSTM Baseline Training Job Params
+2020-11-10 08:53:53 - {
+    "input_size": 78,
+    "output_size": 11,
+    "qpm_index": 0,
+    "vel_param_idx": 0,
+    "dev_param_idx": 2,
+    "articul_param_idx": 3,
+    "pedal_param_idx": 4,
+    "time_steps": 500,
+    "num_key_augmentation": 1,
+    "batch_size": 1,
+    "num_tempo_param": 1,
+    "num_input": 78,
+    "num_output": 11,
+    "num_prime_param": 11,
+    "device_num": 1,
+    "is_dev": true,
+    "learning_rate": 0.1,
+    "grad_clip": 0.5
+}
+2020-11-10 08:53:54 - Reading Dev Data
+2020-11-10 08:53:54 - Loading the training data
+2020-11-10 08:53:58 - number of train performances: 5 number of valid perf: 3
+2020-11-10 08:53:58 - training sample example: [0.40253450874098085, -0.9043350534864922, 2.272152234854334, 1.6245242470007877, 1.2609703359796316, -0.13802735400033747, -0.8957452833471335, -0.8172526447037678, 0.0, 0.0, -1, 0, 0, 0.25, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, 0.4, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5, 0]
+2020-11-10 08:54:00 - STARTING None TRAINING VERSION 0.1 JOB AT 20 EPOCHS FOR DEV DATA SET
+2020-11-10 08:54:00 - Number of model params: 1399563
+2020-11-10 08:54:00 - LSTMBaseline(
+  (lstm_encoder): LSTM(78, 256, num_layers=3, dropout=0.5)
+  (decoder): Linear(in_features=256, out_features=11, bias=True)
+)
+2020-11-10 08:54:00 - Training Epoch 1
+2020-11-10 08:54:00 - 
+2020-11-10 08:54:08 - Training Loss
+2020-11-10 08:54:08 - Total Loss: 8.351441708834548
+2020-11-10 08:54:08 - 	tempo: 10.09 vel: 9.587 dev: 8.172 articul: 5.944 pedal: 8.296 trill: 0.0 kld: nan 
+2020-11-10 08:54:08 - 
+2020-11-10 08:54:08 - Validation loss
+2020-11-10 08:54:08 - Total Loss: 1.7589067022005718
+2020-11-10 08:54:08 - 	tempo: 5.869 vel: 3.48 dev: 0.7569 articul: 0.6901 pedal: 1.222 trill: 0.0 kld: nan 
+2020-11-10 08:54:08 - 
+2020-11-10 08:54:08 - 
+2020-11-10 08:54:09 - Training Epoch 2
+2020-11-10 08:54:09 - 
+2020-11-10 08:54:16 - Training Loss
+2020-11-10 08:54:16 - Total Loss: 4.5799754972327245
+2020-11-10 08:54:16 - 	tempo: 3.788 vel: 4.691 dev: 4.701 articul: 4.889 pedal: 4.616 trill: 0.0 kld: nan 
+2020-11-10 08:54:16 - 
+2020-11-10 08:54:17 - Validation loss
+2020-11-10 08:54:17 - Total Loss: 1.5710577964782715
+2020-11-10 08:54:17 - 	tempo: 4.039 vel: 2.58 dev: 0.9527 articul: 0.858 pedal: 1.265 trill: 0.0 kld: nan 
+2020-11-10 08:54:17 - 
+2020-11-10 08:54:17 - 
+2020-11-10 08:54:17 - Training Epoch 3
+2020-11-10 08:54:17 - 
+2020-11-10 08:54:25 - Training Loss
+2020-11-10 08:54:25 - Total Loss: 4.370211702187856
+2020-11-10 08:54:25 - 	tempo: 3.851 vel: 4.498 dev: 4.205 articul: 4.816 pedal: 4.386 trill: 0.0 kld: nan 
+2020-11-10 08:54:25 - 
+2020-11-10 08:54:25 - Validation loss
+2020-11-10 08:54:25 - Total Loss: 1.9250729878743489
+2020-11-10 08:54:25 - 	tempo: 4.297 vel: 2.703 dev: 0.8864 articul: 0.5296 pedal: 1.823 trill: 0.0 kld: nan 
+2020-11-10 08:54:25 - 
+2020-11-10 08:54:25 - 
+2020-11-10 08:54:25 - Training Epoch 4
+2020-11-10 08:54:25 - 
+2020-11-10 08:54:33 - Training Loss
+2020-11-10 08:54:33 - Total Loss: 3.9924046981793184
+2020-11-10 08:54:33 - 	tempo: 3.553 vel: 4.188 dev: 4.039 articul: 4.193 pedal: 3.992 trill: 0.0 kld: nan 
+2020-11-10 08:54:33 - 
+2020-11-10 08:54:34 - Validation loss
+2020-11-10 08:54:34 - Total Loss: 1.7859026789665222
+2020-11-10 08:54:34 - 	tempo: 5.569 vel: 3.439 dev: 0.9279 articul: 0.6603 pedal: 1.293 trill: 0.0 kld: nan 
+2020-11-10 08:54:34 - 
+2020-11-10 08:54:34 - 
+2020-11-10 08:54:34 - Training Epoch 5
+2020-11-10 08:54:34 - 
+2020-11-10 08:54:42 - Training Loss
+2020-11-10 08:54:42 - Total Loss: 4.06341773428415
+2020-11-10 08:54:42 - 	tempo: 3.267 vel: 4.042 dev: 4.025 articul: 4.454 pedal: 4.13 trill: 0.0 kld: nan 
+2020-11-10 08:54:42 - 
+2020-11-10 08:54:42 - Validation loss
+2020-11-10 08:54:42 - Total Loss: 1.910249690214793
+2020-11-10 08:54:42 - 	tempo: 5.35 vel: 3.232 dev: 0.9186 articul: 0.5876 pedal: 1.561 trill: 0.0 kld: nan 
+2020-11-10 08:54:42 - 
+2020-11-10 08:54:42 - 
+2020-11-10 08:54:43 - Training Epoch 6
+2020-11-10 08:54:43 - 
+2020-11-10 08:54:50 - Training Loss
+2020-11-10 08:54:50 - Total Loss: 4.071857366090019
+2020-11-10 08:54:50 - 	tempo: 3.608 vel: 4.404 dev: 4.301 articul: 4.381 pedal: 4.014 trill: 0.0 kld: nan 
+2020-11-10 08:54:50 - 
+2020-11-10 08:54:50 - Validation loss
+2020-11-10 08:54:50 - Total Loss: 1.6075402696927388
+2020-11-10 08:54:50 - 	tempo: 3.862 vel: 2.542 dev: 0.7634 articul: 0.7759 pedal: 1.391 trill: 0.0 kld: nan 
+2020-11-10 08:54:50 - 
+2020-11-10 08:54:50 - 
+2020-11-10 08:54:50 - Training Epoch 7
+2020-11-10 08:54:50 - 
+2020-11-10 08:54:59 - Training Loss
+2020-11-10 08:54:59 - Total Loss: 4.122983393603808
+2020-11-10 08:54:59 - 	tempo: 3.818 vel: 4.38 dev: 4.269 articul: 4.471 pedal: 4.059 trill: 0.0 kld: nan 
+2020-11-10 08:54:59 - 
+2020-11-10 08:54:59 - Validation loss
+2020-11-10 08:54:59 - Total Loss: 1.8971320986747742
+2020-11-10 08:54:59 - 	tempo: 4.037 vel: 2.561 dev: 0.9544 articul: 0.8159 pedal: 1.786 trill: 0.0 kld: nan 
+2020-11-10 08:54:59 - 
+2020-11-10 08:54:59 - 
+2020-11-10 08:54:59 - Training Epoch 8
+2020-11-10 08:54:59 - 
+2020-11-10 08:55:07 - Training Loss
+2020-11-10 08:55:07 - Total Loss: 4.090836142914163
+2020-11-10 08:55:07 - 	tempo: 3.82 vel: 4.454 dev: 4.033 articul: 4.387 pedal: 4.044 trill: 0.0 kld: nan 
+2020-11-10 08:55:07 - 
+2020-11-10 08:55:08 - Validation loss
+2020-11-10 08:55:08 - Total Loss: 1.9003497163454692
+2020-11-10 08:55:08 - 	tempo: 4.367 vel: 2.814 dev: 0.7673 articul: 0.74 pedal: 1.745 trill: 0.0 kld: nan 
+2020-11-10 08:55:08 - 
+2020-11-10 08:55:08 - 
+2020-11-10 08:55:08 - Training Epoch 9
+2020-11-10 08:55:08 - 
+2020-11-10 08:55:15 - Training Loss
+2020-11-10 08:55:15 - Total Loss: 3.869919014996604
+2020-11-10 08:55:15 - 	tempo: 3.4 vel: 3.983 dev: 4.059 articul: 4.241 pedal: 3.841 trill: 0.0 kld: nan 
+2020-11-10 08:55:15 - 
+2020-11-10 08:55:15 - Validation loss
+2020-11-10 08:55:15 - Total Loss: 1.8978485465049744
+2020-11-10 08:55:15 - 	tempo: 4.879 vel: 3.017 dev: 0.8211 articul: 0.4788 pedal: 1.669 trill: 0.0 kld: nan 
+2020-11-10 08:55:15 - 
+2020-11-10 08:55:15 - 
+2020-11-10 08:55:15 - Training Epoch 10
+2020-11-10 08:55:15 - 
+2020-11-10 08:55:23 - Training Loss
+2020-11-10 08:55:23 - Total Loss: 3.9200861415226167
+2020-11-10 08:55:23 - 	tempo: 3.455 vel: 4.11 dev: 4.087 articul: 3.962 pedal: 3.93 trill: 0.0 kld: nan 
+2020-11-10 08:55:23 - 
+2020-11-10 08:55:24 - Validation loss
+2020-11-10 08:55:24 - Total Loss: 1.64791735013326
+2020-11-10 08:55:24 - 	tempo: 4.133 vel: 2.685 dev: 0.7687 articul: 0.766 pedal: 1.396 trill: 0.0 kld: nan 
+2020-11-10 08:55:24 - 
+2020-11-10 08:55:24 - 
+2020-11-10 08:55:24 - Training Epoch 11
+2020-11-10 08:55:24 - 
+2020-11-10 08:55:32 - Training Loss
+2020-11-10 08:55:32 - Total Loss: 3.7824184008133717
+2020-11-10 08:55:32 - 	tempo: 3.204 vel: 3.732 dev: 3.916 articul: 4.089 pedal: 3.81 trill: 0.0 kld: nan 
+2020-11-10 08:55:32 - 
+2020-11-10 08:55:32 - Validation loss
+2020-11-10 08:55:32 - Total Loss: 1.9371670881907146
+2020-11-10 08:55:32 - 	tempo: 5.287 vel: 3.382 dev: 0.7853 articul: 0.4292 pedal: 1.632 trill: 0.0 kld: nan 
+2020-11-10 08:55:32 - 
+2020-11-10 08:55:32 - 
+2020-11-10 08:55:32 - Training Epoch 12
+2020-11-10 08:55:32 - 
+2020-11-10 08:55:40 - Training Loss
+2020-11-10 08:55:40 - Total Loss: 3.7938687136849842
+2020-11-10 08:55:40 - 	tempo: 3.251 vel: 3.91 dev: 4.122 articul: 3.923 pedal: 3.79 trill: 0.0 kld: nan 
+2020-11-10 08:55:40 - 
+2020-11-10 08:55:40 - Validation loss
+2020-11-10 08:55:40 - Total Loss: 1.9767870505650837
+2020-11-10 08:55:40 - 	tempo: 4.412 vel: 2.719 dev: 0.7715 articul: 0.5004 pedal: 1.906 trill: 0.0 kld: nan 
+2020-11-10 08:55:40 - 
+2020-11-10 08:55:40 - 
+2020-11-10 08:55:41 - Training Epoch 13
+2020-11-10 08:55:41 - 
+2020-11-10 08:55:48 - Training Loss
+2020-11-10 08:55:48 - Total Loss: 3.802187219063441
+2020-11-10 08:55:48 - 	tempo: 3.4 vel: 4.161 dev: 4.129 articul: 4.059 pedal: 3.725 trill: 0.0 kld: nan 
+2020-11-10 08:55:48 - 
+2020-11-10 08:55:49 - Validation loss
+2020-11-10 08:55:49 - Total Loss: 1.8258643746376038
+2020-11-10 08:55:49 - 	tempo: 4.443 vel: 2.753 dev: 0.7935 articul: 0.5132 pedal: 1.654 trill: 0.0 kld: nan 
+2020-11-10 08:55:49 - 
+2020-11-10 08:55:49 - 
+2020-11-10 08:55:49 - Training Epoch 14
+2020-11-10 08:55:49 - 
+2020-11-10 08:55:56 - Training Loss
+2020-11-10 08:55:56 - Total Loss: 3.7318203050594825
+2020-11-10 08:55:56 - 	tempo: 3.268 vel: 4.05 dev: 3.953 articul: 4.007 pedal: 3.682 trill: 0.0 kld: nan 
+2020-11-10 08:55:56 - 
+2020-11-10 08:55:57 - Validation loss
+2020-11-10 08:55:57 - Total Loss: 1.707304338614146
+2020-11-10 08:55:57 - 	tempo: 5.43 vel: 3.224 dev: 0.9068 articul: 0.6013 pedal: 1.231 trill: 0.0 kld: nan 
+2020-11-10 08:55:57 - 
+2020-11-10 08:55:57 - 
+2020-11-10 08:55:57 - Training Epoch 15
+2020-11-10 08:55:57 - 
+2020-11-10 08:56:05 - Training Loss
+2020-11-10 08:56:05 - Total Loss: 3.8124165205160776
+2020-11-10 08:56:05 - 	tempo: 3.099 vel: 4.036 dev: 3.864 articul: 4.181 pedal: 3.822 trill: 0.0 kld: nan 
+2020-11-10 08:56:05 - 
+2020-11-10 08:56:05 - Validation loss
+2020-11-10 08:56:05 - Total Loss: 1.9698710640271504
+2020-11-10 08:56:05 - 	tempo: 5.102 vel: 3.073 dev: 0.8825 articul: 0.5387 pedal: 1.725 trill: 0.0 kld: nan 
+2020-11-10 08:56:05 - 
+2020-11-10 08:56:05 - 
+2020-11-10 08:56:05 - Training Epoch 16
+2020-11-10 08:56:05 - 
+2020-11-10 08:56:13 - Training Loss
+2020-11-10 08:56:13 - Total Loss: 3.822709512871665
+2020-11-10 08:56:13 - 	tempo: 3.31 vel: 4.086 dev: 3.968 articul: 4.088 pedal: 3.8 trill: 0.0 kld: nan 
+2020-11-10 08:56:13 - 
+2020-11-10 08:56:13 - Validation loss
+2020-11-10 08:56:13 - Total Loss: 1.797966460386912
+2020-11-10 08:56:13 - 	tempo: 4.221 vel: 2.656 dev: 0.802 articul: 0.6319 pedal: 1.638 trill: 0.0 kld: nan 
+2020-11-10 08:56:13 - 
+2020-11-10 08:56:13 - 
+2020-11-10 08:56:13 - Training Epoch 17
+2020-11-10 08:56:13 - 
+2020-11-10 08:56:21 - Training Loss
+2020-11-10 08:56:21 - Total Loss: 3.949869556000104
+2020-11-10 08:56:21 - 	tempo: 3.565 vel: 4.143 dev: 4.086 articul: 4.059 pedal: 3.942 trill: 0.0 kld: nan 
+2020-11-10 08:56:21 - 
+2020-11-10 08:56:21 - Validation loss
+2020-11-10 08:56:21 - Total Loss: 1.695920209089915
+2020-11-10 08:56:21 - 	tempo: 4.031 vel: 2.57 dev: 0.7853 articul: 0.5949 pedal: 1.525 trill: 0.0 kld: nan 
+2020-11-10 08:56:21 - 
+2020-11-10 08:56:21 - 
+2020-11-10 08:56:22 - Training Epoch 18
+2020-11-10 08:56:22 - 
+2020-11-10 08:56:28 - Training Loss
+2020-11-10 08:56:28 - Total Loss: 3.7940760537197717
+2020-11-10 08:56:28 - 	tempo: 3.369 vel: 3.997 dev: 4.003 articul: 4.095 pedal: 3.753 trill: 0.0 kld: nan 
+2020-11-10 08:56:28 - 
+2020-11-10 08:56:28 - Validation loss
+2020-11-10 08:56:28 - Total Loss: 1.818891982237498
+2020-11-10 08:56:28 - 	tempo: 4.61 vel: 2.849 dev: 0.8702 articul: 0.4215 pedal: 1.608 trill: 0.0 kld: nan 
+2020-11-10 08:56:28 - 
+2020-11-10 08:56:28 - 
+2020-11-10 08:56:29 - Training Epoch 19
+2020-11-10 08:56:29 - 
+2020-11-10 08:56:36 - Training Loss
+2020-11-10 08:56:36 - Total Loss: 3.788178347655245
+2020-11-10 08:56:36 - 	tempo: 3.442 vel: 4.171 dev: 3.945 articul: 3.894 pedal: 3.745 trill: 0.0 kld: nan 
+2020-11-10 08:56:36 - 
+2020-11-10 08:56:37 - Validation loss
+2020-11-10 08:56:37 - Total Loss: 1.580798347791036
+2020-11-10 08:56:37 - 	tempo: 4.069 vel: 2.634 dev: 0.8059 articul: 0.4832 pedal: 1.342 trill: 0.0 kld: nan 
+2020-11-10 08:56:37 - 
+2020-11-10 08:56:37 - 
+2020-11-10 08:56:37 - Training Epoch 20
+2020-11-10 08:56:37 - 
+2020-11-10 08:56:44 - Training Loss
+2020-11-10 08:56:44 - Total Loss: 3.8704931893169063
+2020-11-10 08:56:44 - 	tempo: 3.603 vel: 4.17 dev: 4.106 articul: 4.039 pedal: 3.808 trill: 0.0 kld: nan 
+2020-11-10 08:56:44 - 
+2020-11-10 08:56:44 - Validation loss
+2020-11-10 08:56:44 - Total Loss: 1.548586408297221
+2020-11-10 08:56:44 - 	tempo: 4.035 vel: 2.614 dev: 0.7686 articul: 0.6121 pedal: 1.286 trill: 0.0 kld: nan 
+2020-11-10 08:56:44 - 
+2020-11-10 08:56:44 - 
+2020-11-10 08:56:44 - FINISHED None VERSION 0.1 TRAINING JOB AT 20 EPOCHS FOR DEV DATA SET
+2020-11-10 09:05:59 - Starting training job for model LSTM Baseline
+2020-11-10 09:05:59 - Decreasing dropout
+2020-11-10 09:06:14 - LSTM Baseline Hyper Params
+2020-11-10 09:06:14 - {
+    "input_size": 78,
+    "output_size": 11,
+    "num_layers": 3,
+    "hidden_size": 256,
+    "dropout": 0.1
+}
+2020-11-10 09:06:14 - LSTM Baseline Training Job Params
+2020-11-10 09:06:14 - {
+    "input_size": 78,
+    "output_size": 11,
+    "qpm_index": 0,
+    "vel_param_idx": 0,
+    "dev_param_idx": 2,
+    "articul_param_idx": 3,
+    "pedal_param_idx": 4,
+    "time_steps": 500,
+    "num_key_augmentation": 1,
+    "batch_size": 1,
+    "num_tempo_param": 1,
+    "num_input": 78,
+    "num_output": 11,
+    "num_prime_param": 11,
+    "device_num": 1,
+    "is_dev": true,
+    "learning_rate": 0.1,
+    "grad_clip": 0.5
+}
+2020-11-10 09:06:19 - Reading Dev Data
+2020-11-10 09:06:19 - Loading the training data
+2020-11-10 09:06:24 - number of train performances: 5 number of valid perf: 3
+2020-11-10 09:06:24 - training sample example: [0.40253450874098085, -0.9043350534864922, 2.272152234854334, 1.6245242470007877, 1.2609703359796316, -0.13802735400033747, -0.8957452833471335, -0.8172526447037678, 0.0, 0.0, -1, 0, 0, 0.25, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, 0.4, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5, 0]
+2020-11-10 09:06:25 - STARTING None TRAINING VERSION 0.1 JOB AT 20 EPOCHS FOR DEV DATA SET
+2020-11-10 09:06:25 - Number of model params: 1399563
+2020-11-10 09:06:25 - LSTMBaseline(
+  (lstm_encoder): LSTM(78, 256, num_layers=3, dropout=0.1)
+  (decoder): Linear(in_features=256, out_features=11, bias=True)
+)
+2020-11-10 09:06:25 - Training Epoch 1
+2020-11-10 09:06:25 - 
+2020-11-10 09:06:33 - Training Loss
+2020-11-10 09:06:33 - Total Loss: 7.882464143875483
+2020-11-10 09:06:33 - 	tempo: 9.536 vel: 9.344 dev: 7.591 articul: 2.99 pedal: 8.178 trill: 0.0 kld: nan 
+2020-11-10 09:06:33 - 
+2020-11-10 09:06:33 - Validation loss
+2020-11-10 09:06:33 - Total Loss: 1.891208251317342
+2020-11-10 09:06:33 - 	tempo: 5.721 vel: 3.456 dev: 0.7809 articul: 0.5075 pedal: 1.477 trill: 0.0 kld: nan 
+2020-11-10 09:06:33 - 
+2020-11-10 09:06:33 - 
+2020-11-10 09:06:33 - Training Epoch 2
+2020-11-10 09:06:33 - 
+2020-11-10 09:06:41 - Training Loss
+2020-11-10 09:06:41 - Total Loss: 5.345446733405462
+2020-11-10 09:06:41 - 	tempo: 4.587 vel: 5.45 dev: 5.711 articul: 5.654 pedal: 5.343 trill: 0.0 kld: nan 
+2020-11-10 09:06:41 - 
+2020-11-10 09:06:42 - Validation loss
+2020-11-10 09:06:42 - Total Loss: 1.6195436318715413
+2020-11-10 09:06:42 - 	tempo: 4.043 vel: 2.521 dev: 0.76 articul: 0.8701 pedal: 1.375 trill: 0.0 kld: nan 
+2020-11-10 09:06:42 - 
+2020-11-10 09:06:42 - 
+2020-11-10 09:06:42 - Training Epoch 3
+2020-11-10 09:06:42 - 
+2020-11-10 09:06:50 - Training Loss
+2020-11-10 09:06:50 - Total Loss: 5.1077763273527745
+2020-11-10 09:06:50 - 	tempo: 4.637 vel: 4.915 dev: 5.183 articul: 5.479 pedal: 5.139 trill: 0.0 kld: nan 
+2020-11-10 09:06:50 - 
+2020-11-10 09:06:50 - Validation loss
+2020-11-10 09:06:50 - Total Loss: 2.2379961013793945
+2020-11-10 09:06:50 - 	tempo: 4.911 vel: 3.002 dev: 0.7941 articul: 0.5532 pedal: 2.194 trill: 0.0 kld: nan 
+2020-11-10 09:06:50 - 
+2020-11-10 09:06:50 - 
+2020-11-10 09:06:50 - Training Epoch 4
+2020-11-10 09:06:50 - 
+2020-11-10 09:06:58 - Training Loss
+2020-11-10 09:06:58 - Total Loss: 5.045111262549956
+2020-11-10 09:06:58 - 	tempo: 4.801 vel: 5.533 dev: 5.51 articul: 5.385 pedal: 4.895 trill: 0.0 kld: nan 
+2020-11-10 09:06:58 - 
+2020-11-10 09:06:58 - Validation loss
+2020-11-10 09:06:58 - Total Loss: 1.6282220880190532
+2020-11-10 09:06:58 - 	tempo: 3.99 vel: 2.609 dev: 0.7871 articul: 0.7863 pedal: 1.391 trill: 0.0 kld: nan 
+2020-11-10 09:06:58 - 
+2020-11-10 09:06:58 - 
+2020-11-10 09:06:58 - Training Epoch 5
+2020-11-10 09:06:58 - 
+2020-11-10 09:07:05 - Training Loss
+2020-11-10 09:07:05 - Total Loss: 5.227164289435825
+2020-11-10 09:07:05 - 	tempo: 4.906 vel: 5.495 dev: 5.394 articul: 5.584 pedal: 5.16 trill: 0.0 kld: nan 
+2020-11-10 09:07:05 - 
+2020-11-10 09:07:05 - Validation loss
+2020-11-10 09:07:05 - Total Loss: 1.6972780227661133
+2020-11-10 09:07:05 - 	tempo: 3.932 vel: 2.55 dev: 0.7677 articul: 0.7812 pedal: 1.52 trill: 0.0 kld: nan 
+2020-11-10 09:07:05 - 
+2020-11-10 09:07:05 - 
+2020-11-10 09:07:06 - Training Epoch 6
+2020-11-10 09:07:06 - 
+2020-11-10 09:07:13 - Training Loss
+2020-11-10 09:07:13 - Total Loss: 5.214689423506324
+2020-11-10 09:07:13 - 	tempo: 4.823 vel: 5.408 dev: 5.371 articul: 5.57 pedal: 5.17 trill: 0.0 kld: nan 
+2020-11-10 09:07:13 - 
+2020-11-10 09:07:13 - Validation loss
+2020-11-10 09:07:13 - Total Loss: 2.0155345797538757
+2020-11-10 09:07:14 - 	tempo: 3.994 vel: 2.493 dev: 0.9483 articul: 0.8542 pedal: 1.983 trill: 0.0 kld: nan 
+2020-11-10 09:07:14 - 
+2020-11-10 09:07:14 - 
+2020-11-10 09:07:14 - Training Epoch 7
+2020-11-10 09:07:14 - 
+2020-11-10 09:07:21 - Training Loss
+2020-11-10 09:07:21 - Total Loss: 5.054009990514936
+2020-11-10 09:07:21 - 	tempo: 4.976 vel: 4.984 dev: 5.103 articul: 5.5 pedal: 5.004 trill: 0.0 kld: nan 
+2020-11-10 09:07:21 - 
+2020-11-10 09:07:21 - Validation loss
+2020-11-10 09:07:21 - Total Loss: 1.8294822573661804
+2020-11-10 09:07:21 - 	tempo: 3.685 vel: 2.58 dev: 0.8066 articul: 0.6288 pedal: 1.775 trill: 0.0 kld: nan 
+2020-11-10 09:07:21 - 
+2020-11-10 09:07:21 - 
+2020-11-10 09:07:21 - Training Epoch 8
+2020-11-10 09:07:21 - 
+2020-11-10 09:07:29 - Training Loss
+2020-11-10 09:07:29 - Total Loss: 4.835957680145899
+2020-11-10 09:07:29 - 	tempo: 4.685 vel: 5.226 dev: 5.298 articul: 5.417 pedal: 4.653 trill: 0.0 kld: nan 
+2020-11-10 09:07:29 - 
+2020-11-10 09:07:30 - Validation loss
+2020-11-10 09:07:30 - Total Loss: 1.8250653147697449
+2020-11-10 09:07:30 - 	tempo: 4.643 vel: 2.853 dev: 0.7922 articul: 0.5257 pedal: 1.609 trill: 0.0 kld: nan 
+2020-11-10 09:07:30 - 
+2020-11-10 09:07:30 - 
+2020-11-10 09:07:30 - Training Epoch 9
+2020-11-10 09:07:30 - 

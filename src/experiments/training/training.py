@@ -42,18 +42,19 @@ def get_full_data():
 
 def start_training(
   data, 
-  version, 
+  version:float, 
   num_epochs:int, 
   job, 
   job_params:ModelJobParams, 
   model_class, 
-  model_hyper_params
+  model_hyper_params, 
+  model_folder:str
 ):
   model = model_class(model_hyper_params)
   training_job = job(job_params, model)
-  return training_job.run_job(data, num_epochs, version=version)
+  return training_job.run_job(data, num_epochs, version=version, model_folder=model_folder)
 
-def plot_loss(train_loss:List, valid_loss:List, folder_name:str, is_dev:bool):
+def plot_loss(train_loss:List, valid_loss:List, folder_name:str, plot_title:str, is_dev:bool):
   max_loss = max(np.max(train_loss), np.max(valid_loss))
   X = [i for i in range(len(train_loss))]
   X = np.array(X)
@@ -67,10 +68,16 @@ def plot_loss(train_loss:List, valid_loss:List, folder_name:str, is_dev:bool):
   # ax.legend([train_plt, valid_plt])
   # plt.legend([train_plt, valid_plt], ['Training Loss', 'Valid Loss'])
   plt.ylim((0, max_loss + max_loss * 0.1))
-  plt.title('MSE Loss')
+  plt.title(plot_title)
   plt.xlabel('epoch number')
   plt.ylabel('MSE')
 
   plot_path = f'./runs/{folder_name}{"_dev" if is_dev else ""}/loss_plot.png'
   plt.savefig(plot_path, bbox_inches='tight')
   plt.show()
+
+def legacy_training_run_str(run_folder:str, model_folder:str, model_name:str, model_code:str, description:str, is_dev:str):
+  model_run_script_path = '../../../../src/old/model_run.py'
+  data_path = f'{CACHE_DATA_DIR}/train/training_data_development' if is_dev == 'true' else f'{CACHE_DATA_DIR}/train/training_data'
+  run_str = f'{model_run_script_path} -mode=train -code={model_code} -data={data_path} -run_folder={run_folder} -model_name={model_name} -model_folder={model_folder} -is_dev={is_dev} -run_description={description}'
+  return run_str

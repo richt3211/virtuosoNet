@@ -64,7 +64,7 @@ class ModelJob():
         self.model = model
         self.num_updated = 0
 
-    def run_job(self, data, num_epochs, version):
+    def run_job(self, data, num_epochs, version, model_folder):
         try:
             type = "DEV" if self.params.is_dev else ""
             start_message = f"STARTING {self.model_name} TRAINING VERSION {version} JOB AT {num_epochs} EPOCHS FOR {type} DATA SET"
@@ -74,7 +74,7 @@ class ModelJob():
             logging.info(f'Number of model params: {self.count_paramters()}')
             logging.info(repr(self.model))
 
-            training_loss_total, valid_loss_total = self.train(self.model, data, num_epochs, version)
+            training_loss_total, valid_loss_total = self.train(self.model, data, num_epochs, version, model_folder)
 
             end_message = f'FINISHED {self.model_name} VERSION {version} TRAINING JOB AT {num_epochs} EPOCHS FOR {type} DATA SET'
             logging.info(end_message)
@@ -85,7 +85,7 @@ class ModelJob():
             sendToDiscord("There was an error during training for the HAN BL training job, please check logs")
             raise e
 
-    def train(self, model, data, num_epochs, version):
+    def train(self, model, data, num_epochs, version, model_folder):
         best_loss = float('inf')
         training_loss_total = []
         valid_loss_total = []
@@ -120,7 +120,8 @@ class ModelJob():
                 'best_valid_loss': best_loss,
                 'optimizer': self.optimizer.state_dict(),
                 'training_step': self.num_updated
-            }, is_best, "Transformer/TransformerEncoder", version)
+            }, is_best, model_folder, version)
+            # }, is_best, "Transformer/TransformerEncoder", version)
 
         return training_loss_total, valid_loss_total
 
@@ -370,7 +371,7 @@ class ModelJob():
     def save_checkpoint(self, state, is_best, folder, version):
         folder = f'{CACHE_MODEL_DIR}/{folder}'
         if not os.path.exists(folder):
-            os.mkdir(folder)
+            os.makedirs(folder)
         if self.params.is_dev:
             filepath = f'{folder}/v{version}_dev.pth'
         else:

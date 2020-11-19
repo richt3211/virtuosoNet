@@ -10,37 +10,37 @@ import math
 import logging
 
 from torch.tensor import Tensor
+from src.models.params import Params
 from src.old import model_constants as cons
 from src.old.nnModel import ContextAttention
+from dataclasses import dataclass
 
-DROP_OUT = 0.1
+@dataclass
+class LSTMBaselineHyperParams(Params):
+    num_layers:int = 3
+    hidden_size:int = 256
+    dropout:int = 0.5
 
-QPM_INDEX = 0
-# VOICE_IDX = 11
-PITCH_IDX = 12
-TEMPO_IDX = PITCH_IDX + 13
-DYNAMICS_IDX = TEMPO_IDX + 5
-LEN_DYNAMICS_VEC = 4
-QPM_PRIMO_IDX = 4
-TEMPO_PRIMO_IDX = -2
-NUM_VOICE_FEED_PARAM = 2
-
-
-NUM_PRIME_PARAM = 11
-
+    def __post_init__(self):
+        logging.info('LSTM Baseline Hyper Params')
+        super().__post_init__()
 
 class LSTMBaseline(nn.Module):
-    # def __init__(self, network_parameters, device, step_by_step=False):
-    #     super(HAN_Integrated, self).__init__()
-
-    def __init__(self):
+    def __init__(self, params: LSTMBaselineHyperParams):
         super().__init__()
+        self.params = params
 
-        self.input_size = 78
-        self.output_size = 11
+        self.lstm_encoder = nn.LSTM(
+            input_size=self.params.input_size, 
+            hidden_size=self.params.hidden_size, 
+            num_layers=self.params.num_layers,
+            dropout=self.params.dropout,
+            # bidirectional=True
+        )
+        self.decoder = nn.Linear(self.params.hidden_size, self.params.output_size)
 
-        self.lstm = nn.LSTM(self.input_size, self.output_size)
 
     def forward(self, x: torch.Tensor):
-        lstm_out, _ = self.lstm(x.view(len(x), 1, -1))
-        return lstm_out
+        lstm_out, _ = self.lstm_encoder(x)
+        out = self.decoder(lstm_out)
+        return out
