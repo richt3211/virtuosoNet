@@ -1,7 +1,7 @@
 import json
 from typing import List, NewType
 from torch._C import ClassType
-from src.logger import init_logger, log_neptune_timeline 
+from src.logger import init_logger
 from src.constants import CACHE_DATA_DIR
 from src.data.data_reader.read_featurized_cache import read_featurized
 from src.models.model_run_job import ModelJob, ModelJobParams
@@ -16,11 +16,10 @@ import neptune
 from neptune.experiments import Experiment
 
 from src.models.params import Params
+from src.neptune import init_experiment, log_neptune_timeline
 
-def init_training_job(is_dev:bool, exp_name:str, exp_description:str, hyper_params:Params, job_params: ModelJobParams, tags:list = None) -> Experiment:
+def init_training_job(is_dev:bool, exp_name:str, exp_description:str, hyper_params:Params, job_params: ModelJobParams, model_src_path:str, tags:list = None) -> Experiment:
   '''Initalizes and creates a neptune experiment. '''  
-
-  neptune.init('richt3211/thesis', api_token=NEPTUNE_TOKEN)
 
   hyper_params_dict = asdict(hyper_params)
   job_params_dict = asdict(job_params)
@@ -29,13 +28,7 @@ def init_training_job(is_dev:bool, exp_name:str, exp_description:str, hyper_para
 
   logger = init_logger()
   exp_tags = [f'{"dev" if is_dev else "full"}'] + tags
-  exp:Experiment = neptune.create_experiment(
-    name=exp_name,
-    description=exp_description,
-    params=hyper_params_dict,
-    tags=exp_tags,
-    logger=logger
-  )
+  exp:Experiment = init_experiment(exp_name, exp_description, hyper_params_dict, exp_tags, model_src_path, logger)
   logger.info('Starting experiment')
   log_neptune_timeline('Starting experiment', exp)
   return exp

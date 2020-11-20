@@ -28,5 +28,4 @@ def init_logger():
 
     return logger
 
-def log_neptune_timeline(log:str, exp:Experiment):
-        exp.log_text('timeline', f'{datetime.now()} - {log}')
+

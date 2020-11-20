@@ -4,7 +4,7 @@ from src.constants import CACHE_MODEL_DIR
 from src.discord_bot import sendToDiscord
 from src.models.model_writer_reader import save_checkpoint
 from src.models.params import Params
-from src.logger import log_neptune_timeline
+from src.neptune import log_neptune_timeline
 from dataclasses import asdict, dataclass
 from neptune.experiments import Experiment
 from datetime import datetime
@@ -20,6 +20,7 @@ import torch
 import random 
 import copy
 import logging
+import pickle
 
 
 @dataclass
@@ -126,6 +127,8 @@ class ModelJob():
                 'optimizer': self.optimizer.state_dict(),
                 'training_step': self.num_updated
             }, is_best, model_folder, version)
+            self.save_params(model_folder)
+
             message = f'saving model at epoch {epoch +1} as the best model'
             logging.info(message)
             log_neptune_timeline(message, self.exp)
@@ -374,6 +377,9 @@ class ModelJob():
         logging.info(log_str)
 
     def save_checkpoint(self, state, is_best, folder, version):
+        '''Saves the version of the model at each epoch, and updates the best version 
+        of the model'''
+
         folder = f'{CACHE_MODEL_DIR}/{folder}'
         if not os.path.exists(folder):
             os.makedirs(folder)
@@ -396,6 +402,8 @@ class ModelJob():
             shutil.copyfile(filepath, best_filepath)
             self.exp.log_artifact(best_filepath, file_name)
 
+    def save_params(self, folder, exp:Experiment):
+        pass
 
     def han_criterion(self, pred, target, aligned_status=1):
         if isinstance(aligned_status, int):

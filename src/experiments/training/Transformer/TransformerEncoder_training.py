@@ -1,3 +1,6 @@
+import os
+import pickle
+from src.constants import CACHE_MODEL_DIR
 from src.models.model_run_job import ModelJob, ModelJobParams
 from src.models.Transformer import TransformerEncoder, TransformerEncoderHyperParams
 from dataclasses import dataclass
@@ -5,6 +8,7 @@ from neptune.experiments import Experiment
 
 import torch
 import logging
+import neptune
 
 @dataclass
 class TransformerEncoderJobParams(ModelJobParams):
@@ -33,5 +37,16 @@ class TransformerEncoderJob(ModelJob):
         torch.nn.utils.clip_grad_norm_(model.parameters(), self.params.grad_clip)
         self.optimizer.step()
 
+    def save_params(self, folder):
+        folder = f'{CACHE_MODEL_DIR}/{folder}'
+
+        # save model hyperparameters
+        model_params_file_name = f'{folder}/params.pickle'
+        if not os.path.exists(model_params_file_name):
+            with open(model_params_file_name, 'wb') as file:
+                pickle.dump(self.model.params, file)
+            
+            # save to neptune
+            self.exp.log_artifact(model_params_file_name, 'params.pickle')
 
     

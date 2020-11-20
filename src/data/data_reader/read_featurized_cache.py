@@ -2,7 +2,8 @@ import pickle
 import logging 
 from neptune.experiments import Experiment
 
-from src.logger import log_neptune_timeline
+from src.neptune import log_neptune_timeline
+
 
 def read_featurized(file_path, exp:Experiment):
     with open(file_path, "rb") as f:

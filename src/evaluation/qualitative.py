@@ -1,7 +1,13 @@
+from dataclasses import asdict, dataclass
+import json
+import neptune
+from src.neptune import get_experiment_by_id
+from neptune.experiments import Experiment
 from src.data.data_reader.read_pre_processed import read_single_score
 from src.data.data_reader.read_featurized_cache import read_featurized_stats
 from src.data.data_writer.data_writer import write_midi_to_raw
 from src.data.post_processing import feature_output_to_midi
+from src.keys import NEPTUNE_TOKEN
 from src.models.model_run_job import ModelJob, ModelJobParams
 from src.constants import CACHE_DATA_DIR
 from src.models.model_writer_reader import read_checkpoint
@@ -10,13 +16,31 @@ from music21 import midi
 import src.old.data_process as dp
 import torch
 import torch.nn as nn
+import os
 
+from src.old.model_run import DATA_DIR 
+
+
+@dataclass
+class QualitativeEvaluatorParams(ModelJobParams):
+    performances = [
+        {'song_name': 'chopin_fantasie_impromptu', 'composer': 'Chopin'}, 
+        {'song_name': 'bwv_855_prelude', 'composer': 'Bach'},
+        {'song_name': 'mozart_sonata_11_1', 'composer': 'Mozart'}
+    ]
 
 class QualitativeEvaluator(ModelJob):
     
-    def __init__(self, params:ModelJobParams, model:nn.Module):
+    def __init__(self, params:QualitativeEvaluatorParams, model:nn.Module):
         super().__init__(params, model)
         self.model = model.to(self.params.device_num)
+        self.params = params
+
+    def generate_performances(self):
+        for perf in self.params.performances:
+            xml_path = f'{DATA_DIR}/production/input/{perf["song_name"]}/musicxml_cleaned.musicxml'
+            # self.gen
+        pass
 
     def generate_performance_for_file(self, 
         xml_file_path, 
@@ -89,3 +113,17 @@ def playMidi(filename):
     mf.close()
     s = midi.translate.midiFileToStream(mf)
     s.show('midi')
+
+def init_performance_generation(experiment_id: str) -> Experiment:
+    '''Initalizes and creates a neptune experiment.'''  
+
+    exp:Experiment = get_experiment_by_id(experiment_id)
+    cache_dir = './cache'
+    if not os.path.exists(cache_dir):
+        os.mkdir()
+
+    # download model and hyper params
+    exp.download_artifact('model_best.pth', f'{cache_dir}/model.pth')
+    exp.download_artifact('params.pickle', f'{cache_dir}/params.pickle')
+
+    return exp 
