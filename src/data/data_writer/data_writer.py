@@ -1,3 +1,4 @@
+from neptune.experiments import Experiment
 from pyScoreParser import xml_matching
 import pyScoreParser.performanceWorm as perf_worm
 import pickle
@@ -21,7 +22,12 @@ def write_featurized_form_to_cache(data, stats, file_path):
         with open(file_path + "_stat.pickle", "wb") as f:
             pickle.dump([stats['means'], stats['stds'], stats['bins']], f, protocol=2)
 
-def write_midi_to_raw(midi_path, plot_path, output_features, output_midi, midi_pedals, pedal=True, disklavier=False):
+def write_midi_to_raw(perf_name, exp:Experiment, output_features, output_midi, midi_pedals, pedal=True, disklavier=False):
+    if not os.path.exists('./artifacts'):
+        os.mkdir('./artifacts')
+    
+    midi_path = f'./artifacts/{perf_name}.mid'
+    plot_path = f'./artifacts/{perf_name}.png'
     perf_worm.plot_performance_worm(output_features, plot_path)
     print(f'Saving midi performance to {midi_path}')
     xml_matching.save_midi_notes_as_piano_midi(
@@ -31,3 +37,8 @@ def write_midi_to_raw(midi_path, plot_path, output_features, output_midi, midi_p
         bool_pedal=pedal, 
         disklavier=disklavier
     )
+
+    exp.log_artifact(midi_path, f'{perf_name}.mid')
+    exp.log_artifact(plot_path, f'{perf_name}.png')
+
+

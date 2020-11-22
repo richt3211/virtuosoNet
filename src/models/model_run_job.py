@@ -2,7 +2,7 @@ from time import time
 from src.logger import init_logger
 from src.constants import CACHE_MODEL_DIR
 from src.discord_bot import sendToDiscord
-from src.models.model_writer_reader import save_checkpoint
+from src.models.model_writer_reader import save_checkpoint, save_params
 from src.models.params import Params
 from src.neptune import log_neptune_timeline
 from dataclasses import asdict, dataclass
@@ -31,17 +31,12 @@ class ModelJobParams(Params):
     articul_param_idx:int = 3
     pedal_param_idx:int = 4
 
-    time_steps:int = 500
     num_key_augmentation:int = 1
     batch_size:int = 1
     epochs:int = 20
 
     num_tempo_param:int = 1
     num_prime_param:int = 11
-
-    device_num:int = 1 
-    device = torch.device(f'cuda:{device_num}')
-    is_dev:bool = False
 
 class ModelJob():
 
@@ -120,14 +115,14 @@ class ModelJob():
             is_best = mean_valid_loss < best_loss
             best_loss = min(mean_valid_loss, best_loss)
 
-            self.save_checkpoint({
+            save_checkpoint({
                 'epoch': epoch + 1,
                 'state_dict': model.state_dict(),
                 'best_valid_loss': best_loss,
                 'optimizer': self.optimizer.state_dict(),
                 'training_step': self.num_updated
-            }, is_best, model_folder, version)
-            self.save_params(model_folder)
+            }, is_best, model_folder, self.params, self.exp)
+            save_params(model_folder, self.model.params, self.exp)
 
             message = f'saving model at epoch {epoch +1} as the best model'
             logging.info(message)
@@ -205,14 +200,6 @@ class ModelJob():
             self.batch_time_step_run(data, model, feature_loss, total_loss, train)
             self.num_updated += 1
 
-    def zero_grad_optim(self):
-        pass
-
-    def init_optimizer(self):
-        pass
-
-    def step_optimizer(self, model, total_loss):
-        pass
 
     def calculate_loss(self, outputs, batches):
         prime_batch_y = batches['batch_y']
@@ -376,7 +363,7 @@ class ModelJob():
             log_str += f'{key} loss: {np.mean(value)}, '
         logging.info(log_str)
 
-    def save_checkpoint(self, state, is_best, folder, version):
+    def save_checkpoint(self, state, is_best, folder):
         '''Saves the version of the model at each epoch, and updates the best version 
         of the model'''
 
@@ -385,25 +372,24 @@ class ModelJob():
             os.makedirs(folder)
         file_name = ''
         if self.params.is_dev:
-            file_name = f'v{version}_dev.pth'
+            file_name = f'model_dev.pth'
         else:
-            file_name = f'v{version}.pth'
+            file_name = f'model.pth'
         filepath = f'{folder}/{file_name}'
         torch.save(state, filepath)
         self.exp.log_artifact(filepath, file_name)
         if is_best:
             file_name = ''
             if self.params.is_dev:
-                file_name = f'v{version}_dev_best.pth'
+                file_name = f'model_dev_best.pth'
             else:
-                file_name = f'v{version}_best.pth'
+                file_name = f'model_best.pth'
 
             best_filepath = f'{folder}/{file_name}'
             shutil.copyfile(filepath, best_filepath)
             self.exp.log_artifact(best_filepath, file_name)
 
-    def save_params(self, folder, exp:Experiment):
-        pass
+    
 
     def han_criterion(self, pred, target, aligned_status=1):
         if isinstance(aligned_status, int):
@@ -421,3 +407,15 @@ class ModelJob():
 
     def count_paramters(self):
         return sum(p.numel() for p in self.model.parameters() if p.requires_grad)
+
+    def zero_grad_optim(self):
+        pass
+
+    def init_optimizer(self):
+        pass
+
+    def step_optimizer(self, model, total_loss):
+        pass
+
+    def save_params(self, folder, exp:Experiment):
+        pass

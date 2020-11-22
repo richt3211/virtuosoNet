@@ -2,7 +2,7 @@ import os
 import pickle
 from src.constants import CACHE_MODEL_DIR
 from src.models.model_run_job import ModelJob, ModelJobParams
-from src.models.Transformer import TransformerEncoder, TransformerEncoderHyperParams
+from src.models.transformer import TransformerEncoder, TransformerEncoderHyperParams
 from dataclasses import dataclass
 from neptune.experiments import Experiment
 

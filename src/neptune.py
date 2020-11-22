@@ -5,6 +5,7 @@ from src.constants import SRC_DIR
 from src.keys import NEPTUNE_TOKEN
 
 import neptune 
+import zipfile
 
 def log_neptune_timeline(log:str, exp:Experiment):
     exp.log_text('timeline', f'{datetime.now()} - {log}')
@@ -29,5 +30,6 @@ def get_experiment_by_id(id:str):
     session = Session.with_default_backend(NEPTUNE_TOKEN)
     project = session.get_project('richt3211/thesis')
 
-    exp = project.get_experiments(id)
+    exp:Experiment = project.get_experiments(id)[0]
+    
     return exp

@@ -13,6 +13,7 @@ import numpy as np
 import os 
 import logging
 import neptune
+import shutil
 from neptune.experiments import Experiment
 
 from src.models.params import Params
@@ -26,6 +27,9 @@ def init_training_job(is_dev:bool, exp_name:str, exp_description:str, hyper_para
   hyper_params_dict.update(job_params_dict)
   print(json.dumps(hyper_params_dict, indent=4))
 
+  if os.path.exists('./artifacts'):
+    shutil.rmtree('./artifacts')
+    
   logger = init_logger()
   exp_tags = [f'{"dev" if is_dev else "full"}'] + tags
   exp:Experiment = init_experiment(exp_name, exp_description, hyper_params_dict, exp_tags, model_src_path, logger)
