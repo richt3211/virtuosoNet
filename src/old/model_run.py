@@ -247,7 +247,7 @@ def save_checkpoint(state, is_best, filename=args.modelCode, model_name='prime')
         if args.is_dev:
             best_name = f'{best_file}_best_dev.pth'
         else:
-            best_name = f'{best_file}_dev.path'
+            best_name = f'{best_file}_best.pth'
         shutil.copyfile(save_name, best_name)
 
 

@@ -1,23 +1,20 @@
-from src.models.BL import LSTMBaseline
+from src.models.lstm_bl import LSTMBaseline
 from src.models.model_run_job import ModelJob, ModelJobParams
 from dataclasses import dataclass
+from neptune.experiments import Experiment 
 
 import torch
 import logging
 
 @dataclass
-class LSTMBlTrainingJobParams(ModelJobParams):
+class LSTMBaselineTrainingJobParams(ModelJobParams):
     learning_rate:float = 0.1
     grad_clip:float = 0.5
 
-    def __post_init__(self):
-        logging.info('LSTM Baseline Training Job Params')
-        super().__post_init__()
-
-class LSTMBlTraining(ModelJob):
+class LSTMBaselineTraining(ModelJob):
     
-    def __init__(self, params:LSTMBlTrainingJobParams, model:LSTMBaseline):
-        super().__init__(params, model)
+    def __init__(self, params:LSTMBaselineTrainingJobParams, model:LSTMBaseline, exp:Experiment):
+        super().__init__(params, model, exp)
         self.params = params
         self.model = model.to(self.params.device)
 
