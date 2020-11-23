@@ -119,7 +119,7 @@ def playMidi(filename):
     s = midi.translate.midiFileToStream(mf)
     s.show('midi')
 
-def init_performance_generation(experiment_id: str, model_file_name, is_dev:bool) -> Experiment:
+def init_performance_generation(experiment_id: str, is_dev:bool) -> Experiment:
     '''Initalizes and creates a neptune experiment.'''  
 
     init_logger()
@@ -134,9 +134,9 @@ def init_performance_generation(experiment_id: str, model_file_name, is_dev:bool
     model_path = 'model_dev_best.pth' if is_dev else "model_best.pth"
     exp.download_artifact(model_path, f'{cache_dir}')
     exp.download_artifact('params.pickle', f'{cache_dir}')
-    exp.download_sources(model_file_name)
+    exp.download_sources()
 
-    with zipfile.ZipFile('transformer.py.zip', 'r') as zip_ref:
-        zip_ref.extractall('./models')
+    with zipfile.ZipFile('source.zip', 'r') as zip_ref:
+        zip_ref.extractall('./')
 
     return exp 
