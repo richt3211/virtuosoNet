@@ -9,27 +9,28 @@ import torch.nn as nn
 import pickle 
 
 
-def save_checkpoint(state, is_best, folder, params, exp:Experiment):
+def save_checkpoint(state, is_best:bool, is_dev:bool, exp:Experiment, folder:str=None, model_name:str=None):
     '''Saves the version of the model at each epoch, and updates the best version 
     of the model'''
 
-    folder = f'./artifacts'
-    if not os.path.exists(folder):
-        os.makedirs(folder)
-    file_name = ''
-    if params.is_dev:
-        file_name = f'model_dev.pth'
+    if not folder:
+        folder = f'./artifacts'
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+    file_name = f'{model_name}_model' if model_name else ''
+    if is_dev:
+        file_name = f'{file_name}_dev.pth'
     else:
-        file_name = f'model.pth'
+        file_name = f'{file_name}.pth'
     filepath = f'{folder}/{file_name}'
     torch.save(state, filepath)
     exp.log_artifact(filepath, file_name)
     if is_best:
-        file_name = ''
-        if params.is_dev:
-            file_name = f'model_dev_best.pth'
+        file_name = f'{model_name}_model' if model_name else '' 
+        if is_dev:
+            file_name = f'{file_name}_dev_best.pth'
         else:
-            file_name = f'model_best.pth'
+            file_name = f'{file_name}_best.pth'
 
         best_filepath = f'{folder}/{file_name}'
         shutil.copyfile(filepath, best_filepath)

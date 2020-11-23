@@ -1,3 +1,4 @@
+from neptune.experiments import Experiment
 import torch
 import pickle
 import argparse
@@ -8,7 +9,9 @@ import os
 import matplotlib
 from src.constants import CACHE_MODEL_DIR
 
-from src.experiments.training.training import init_training_job, plot_loss
+from src.experiments.training.training import init_legacy_training_job
+from src.models.model_writer_reader import save_checkpoint 
+from src.neptune import log_neptune_timeline
 matplotlib.use('Agg')
 
 from datetime import datetime
@@ -49,6 +52,7 @@ parser.add_argument("-intermd", "--intermediateLoss", default=True, type=lambda 
 parser.add_argument("-randtr", "--randomTrain", default=True, type=lambda x: (str(x).lower() == 'true'), help="use random train")
 parser.add_argument("-dskl", "--disklavier", default=True, type=lambda x: (str(x).lower() == 'true'), help="save midi for disklavier")
 parser.add_argument("-multi", "--multi_instruments", default=False, type=lambda x: (str(x).lower() == 'true'), help="save midi for disklavier")
+parser.add_argument("-epochs", "--num_epochs", default=100, type=int, help="Number of epcohs to train")
 
 # these are arguments specific to running the script from inside of a jupyter notebook
 parser.add_argument("-run_folder", "--run_folder", default='default_run_folder', type=str, help="The folder to store the run log in")
@@ -56,7 +60,9 @@ parser.add_argument("-model_name", "--model_name", default='Default Model Name',
 parser.add_argument("-model_folder", "--model_folder", default="legacy", type=str, help="The folder location to save the model in. The parent directory will always be virtusoNet/models")
 parser.add_argument("-run_description", "--run_description", default="Running Model", type=str, help="The run description to put in the logs")
 parser.add_argument("-is_dev", "--is_dev", default=False, type=lambda x: (str(x).lower() == 'true'), help="Is the run on the dev set or not")
-
+parser.add_argument("-exp_name", "--exp_name", default="Default Neptune Experiment", type=str, help="The experiment name to log to neptune")
+parser.add_argument("-exp_description", "--exp_description", default="Default Neptune Description", type=str, help="The experiment description to log in neptune")
+parser.add_argument("-tags", "--exp_tags", default="legacy", type=str, help="A comma separated string of tags for the neptune experiment")
 
 random.seed(0)
 
@@ -100,7 +106,7 @@ KLD_SIG = 20e4
 if args.sessMode == 'train':
     print('Learning Rate: {}, Time_steps: {}, Delta weight: {}, Weight decay: {}, Grad clip: {}, KLD max: {}, KLD sig step: {}'.format
     (learning_rate, TIME_STEPS, DELTA_WEIGHT, WEIGHT_DECAY, GRAD_CLIP, KLD_MAX, KLD_SIG))
-num_epochs = 100
+num_epochs = args.num_epochs
 num_key_augmentation = 1
 
 NUM_INPUT = 78
@@ -230,25 +236,25 @@ elif LOSS_TYPE == 'CE':
         return -1 * torch.sum((target * torch.log(pred) + (1-target) * torch.log(1-pred)) * aligned_status) / data_size
 
 
-def save_checkpoint(state, is_best, filename=args.modelCode, model_name='prime'):
-    dir_name = f'{CACHE_MODEL_DIR}/{args.model_folder}'
-    if not os.path.exists(dir_name):
-        os.makedirs(dir_name)
-    save_file = f'{dir_name}/{model_name}_{filename}'
-    save_name = ''
-    if args.is_dev:
-        save_name = f'{save_file}_checkpoint_dev.pth'
-    else:
-        save_name = f'{save_file}_checkpoint.pth'
-    torch.save(state, save_name)
-    if is_best:
-        best_file = f'{dir_name}/{model_name}_{filename}'
-        best_name = ''
-        if args.is_dev:
-            best_name = f'{best_file}_best_dev.pth'
-        else:
-            best_name = f'{best_file}_best.pth'
-        shutil.copyfile(save_name, best_name)
+# def save_checkpoint(state, is_best, filename=args.modelCode, model_name='prime'):
+#     dir_name = f'{CACHE_MODEL_DIR}/{args.model_folder}'
+#     if not os.path.exists(dir_name):
+#         os.makedirs(dir_name)
+#     save_file = f'{dir_name}/{model_name}_{filename}'
+#     save_name = ''
+#     if args.is_dev:
+#         save_name = f'{save_file}_checkpoint_dev.pth'
+#     else:
+#         save_name = f'{save_file}_checkpoint.pth'
+#     torch.save(state, save_name)
+#     if is_best:
+#         best_file = f'{dir_name}/{model_name}_{filename}'
+#         best_name = ''
+#         if args.is_dev:
+#             best_name = f'{best_file}_best_dev.pth'
+#         else:
+#             best_name = f'{best_file}_best.pth'
+#         shutil.copyfile(save_name, best_name)
 
 
 
@@ -730,6 +736,10 @@ def handle_data_in_tensor(x, y, hierarchy_test=False):
 
     return x.to(DEVICE), y.to(DEVICE)
 
+def log_timeline(message, exp:Experiment):
+    log_neptune_timeline(message, exp)
+    logging.info(message)
+
 
 def sigmoid(x, gain=1):
   return 1 / (1 + math.exp(-gain*x))
@@ -743,15 +753,41 @@ class TraningSample():
 
 ### training
 
+
+def log_loss(loss_dict, type):
+    exp.log_metric(f'{type} temp loss', loss_dict['tempo'])
+    exp.log_metric(f'{type} vel loss', loss_dict['vel'])
+    exp.log_metric(f'{type} dev loss', loss_dict['deviation'])
+    exp.log_metric(f'{type} articul loss', loss_dict['articul'])
+    exp.log_metric(f'{type} pedal loss', loss_dict['pedal'])
+    exp.log_metric(f'{type} trill loss', loss_dict['trill'])
+    exp.log_metric(f'{type} kld loss', loss_dict['kld'])
+    exp.log_metric(f'{type} total loss', loss_dict['total'])
+
 if args.sessMode == 'train':
-    # initializing the training job folders and logger
-    init_training_job(args.is_dev, args.run_folder, args.model_name, args.run_description)
+    tags = args.tags.split(',')
+    if 'legacy' not in tags:
+        tags.append('legacy')
+    if args.modelCode not in tags:
+        tags.append(args.modelCode)
+    exp = init_legacy_training_job(
+        is_dev=args.is_dev,
+        exp_name=args.exp_name,
+        exp_description=args.exp_description,
+        params={
+            'epochs': num_epochs,
+        },
+        tags=tags
+    )
+    # exp = init_training_job(args.is_dev, args.run_folder, args.model_name, args.run_description)
     now = datetime.now()
     current_time = now.strftime("%D %I:%M:%S")
-    logging.info(f'Starting training job at {current_time}')
+    message = f'Starting training job at {current_time}'
+    log_timeline(message, exp)
     model_parameters = filter(lambda p: p.requires_grad, MODEL.parameters())
     params = sum([np.prod(p.size()) for p in model_parameters])
-    logging.info(f'Number of Network Parameters is {params}')
+    message = f'Number of Network Parameters is {params}'
+    log_timeline(message, exp)
 
     best_prime_loss = float("inf")
     best_second_loss = float("inf")
@@ -777,7 +813,8 @@ if args.sessMode == 'train':
 
 
     # load data
-    logging.info('Loading the training data...')
+    message = 'Loading the training data...'
+    log_timeline(message, exp)
     training_data_name = args.dataName + ".pickle"
     if not os.path.isfile(training_data_name):
         training_data_name = '/mnt/ssd1/jdasam_data/' + training_data_name
@@ -790,8 +827,8 @@ if args.sessMode == 'train':
 
     train_xy = complete_xy['train']
     test_xy = complete_xy['valid']
-    logging.info(f'number of train performances: {len(train_xy)} number of valid perf: {len(test_xy)}')
-    logging.info(f'training sample example {train_xy[0][0][0]}')
+    log_timeline(f'number of train performances: {len(train_xy)} number of valid perf: {len(test_xy)}', exp)
+    log_timeline(f'training sample example {train_xy[0][0][0]}', exp)
 
     train_model = MODEL
 
@@ -799,7 +836,7 @@ if args.sessMode == 'train':
     training_loss = []
     valid_loss = []
     for epoch in range(start_epoch, num_epochs):
-        logging.info(f'current training step is {NUM_UPDATED}')
+        log_timeline(f'current training step is {NUM_UPDATED}', exp)
         tempo_loss_total = []
         vel_loss_total = []
         dev_loss_total = []
@@ -936,12 +973,23 @@ if args.sessMode == 'train':
         mean_trill_loss = np.mean(trill_loss_total)
         mean_kld_loss = np.mean(kld_total)
 
-        mean_valid_loss = (mean_tempo_loss + mean_vel_loss + mean_deviation_loss + mean_articul_loss + mean_pedal_loss * 7 + mean_kld_loss * kld_weight) / (11 + kld_weight)
-        training_loss.append(mean_valid_loss)
+        mean_train_loss = (mean_tempo_loss + mean_vel_loss + mean_deviation_loss + mean_articul_loss + mean_pedal_loss * 7 + mean_kld_loss * kld_weight) / (11 + kld_weight)
+        training_loss.append(mean_train_loss)
 
-        logging.info('Epoch [{}/{}], Loss: {:.4f}, Tempo: {:.4f}, Vel: {:.4f}, Deviation: {:.4f}, Articulation: {:.4f}, Pedal: {:.4f}, Trill: {:.4f}, KLD: {:.4f}'
-              .format(epoch + 1, num_epochs, mean_valid_loss, np.mean(tempo_loss_total), np.mean(vel_loss_total),
-                      np.mean(dev_loss_total), np.mean(articul_loss_total), np.mean(pedal_loss_total), np.mean(trill_loss_total), np.mean(kld_total)))
+        log_loss({
+            'tempo': mean_tempo_loss,
+            'vel': mean_vel_loss,
+            'dev': mean_deviation_loss,
+            'articul': mean_articul_loss,
+            'pedal': mean_pedal_loss,
+            'trill': mean_trill_loss,
+            'kld': mean_kld_loss,
+            'total': mean_train_loss
+        }, 'train')
+
+        loss_str = 'Epoch [{}/{}], Loss: {:.4f}, Tempo: {:.4f}, Vel: {:.4f}, Deviation: {:.4f}, Articulation: {:.4f}, Pedal: {:.4f}, Trill: {:.4f}, KLD: {:.4f}'.format(epoch + 1, num_epochs, mean_valid_loss, np.mean(tempo_loss_total), np.mean(vel_loss_total),
+                      np.mean(dev_loss_total), np.mean(articul_loss_total), np.mean(pedal_loss_total), np.mean(trill_loss_total), np.mean(kld_total))
+        log_timeline(loss_str, exp)
 
 
         ## Validation
@@ -1054,11 +1102,24 @@ if args.sessMode == 'train':
         mean_kld_loss = np.mean(kld_loss_total)
 
         mean_valid_loss = (mean_tempo_loss + mean_vel_loss + mean_deviation_loss + mean_articul_loss + mean_pedal_loss * 7 + mean_kld_loss * kld_weight) / (11 + kld_weight)
-        valid_loss.append(mean_valid_loss)
+        valid_loss.append(mean_valid_loss) 
 
-        logging.info("Valid Loss= {:.4f} , Tempo: {:.4f}, Vel: {:.4f}, Deviation: {:.4f}, Articulation: {:.4f}, Pedal: {:.4f}, Trill: {:.4f}"
-              .format(mean_valid_loss, mean_tempo_loss , mean_vel_loss,
-                      mean_deviation_loss, mean_articul_loss, mean_pedal_loss, mean_trill_loss))
+        log_loss({
+            'tempo': mean_tempo_loss,
+            'vel': mean_vel_loss,
+            'dev': mean_deviation_loss,
+            'articul': mean_articul_loss,
+            'pedal': mean_pedal_loss,
+            'trill': mean_trill_loss,
+            'kld': mean_kld_loss,
+            'total': mean_valid_loss
+        }, 'valid')
+
+        log_str = "Valid Loss= {:.4f} , Tempo: {:.4f}, Vel: {:.4f}, Deviation: {:.4f}, Articulation: {:.4f}, Pedal: {:.4f}, Trill: {:.4f}".format(
+            mean_valid_loss, mean_tempo_loss , mean_vel_loss,mean_deviation_loss, mean_articul_loss, mean_pedal_loss, mean_trill_loss
+            )
+        log_timeline(log_str, exp)
+
 
         is_best = mean_valid_loss < best_prime_loss
         best_prime_loss = min(mean_valid_loss, best_prime_loss)
@@ -1066,32 +1127,34 @@ if args.sessMode == 'train':
         is_best_trill = mean_trill_loss < best_trill_loss
         best_trill_loss = min(mean_trill_loss, best_trill_loss)
 
-        plot_title = f'{args.model_name} for {"dev" if args.is_dev else "full"} data'
-        plot_loss(
-            train_loss=training_loss, 
-            valid_loss=valid_loss, 
-            folder_name=args.run_folder, 
-            plot_title=plot_title,
-            is_dev=args.is_dev
-        )
-
-
         if args.trainTrill:
-            save_checkpoint({
-                'epoch': epoch + 1,
-                'state_dict': MODEL.state_dict(),
-                'best_valid_loss': best_trill_loss,
-                'optimizer': optimizer.state_dict(),
-                'training_step': NUM_UPDATED
-            }, is_best_trill, model_name='trill')
+            save_checkpoint(
+                state = {
+                    'epoch': epoch + 1,
+                    'state_dict': MODEL.state_dict(),
+                    'best_valid_loss': best_trill_loss,
+                    'optimizer': optimizer.state_dict(),
+                    'training_step': NUM_UPDATED
+                }, 
+                is_best=is_best_trill, 
+                is_dev=args.is_dev,
+                exp=exp,
+                model_name='trill'
+            )
         else:
-            save_checkpoint({
-                'epoch': epoch + 1,
-                'state_dict': MODEL.state_dict(),
-                'best_valid_loss': best_prime_loss,
-                'optimizer': optimizer.state_dict(),
-                'training_step': NUM_UPDATED
-            }, is_best, model_name='prime')
+            save_checkpoint(
+                state= {
+                    'epoch': epoch + 1,
+                    'state_dict': MODEL.state_dict(),
+                    'best_valid_loss': best_prime_loss,
+                    'optimizer': optimizer.state_dict(),
+                    'training_step': NUM_UPDATED
+                }, 
+                is_best=is_best, 
+                is_dev=args.is_dev,
+                exp=exp,
+                model_name='prime'
+            )
 
 
     #end of epoch

@@ -178,3 +178,5 @@
 2020-11-23 07:30:28 - Valid Loss= 0.6260 , Tempo: 0.3734, Vel: 0.5326, Deviation: 0.4762, Articulation: 0.7520, Pedal: 0.6774, Trill: 0.0000
 2020-11-23 07:30:29 - current training step is 701424
 2020-11-23 09:49:59 - Epoch [58/100], Loss: 0.5370, Tempo: 0.1354, Vel: 0.4192, Deviation: 0.7566, Articulation: 0.4410, Pedal: 0.5925, Trill: 0.0000, KLD: 1.2673
+2020-11-23 09:54:09 - Valid Loss= 0.6170 , Tempo: 0.3408, Vel: 0.5441, Deviation: 0.4764, Articulation: 0.7339, Pedal: 0.6687, Trill: 0.0000
+2020-11-23 09:54:09 - current training step is 713734

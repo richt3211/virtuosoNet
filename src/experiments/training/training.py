@@ -2,10 +2,11 @@ import json
 from typing import List, NewType
 from torch._C import ClassType
 from src.logger import init_logger
-from src.constants import CACHE_DATA_DIR
+from src.constants import CACHE_DATA_DIR, ROOT_DIR
 from src.data.data_reader.read_featurized_cache import read_featurized
 from src.models.model_run_job import ModelJob, ModelJobParams
 from src.keys import NEPTUNE_TOKEN
+
 from dataclasses import asdict
 
 import matplotlib.pyplot as plt
@@ -33,6 +34,20 @@ def init_training_job(is_dev:bool, exp_name:str, exp_description:str, hyper_para
   logger = init_logger()
   exp_tags = [f'{"dev" if is_dev else "full"}'] + tags
   exp:Experiment = init_experiment(exp_name, exp_description, hyper_params_dict, exp_tags, model_src_path, logger)
+  logger.info('Starting experiment')
+  log_neptune_timeline('Starting experiment', exp)
+  return exp
+
+def init_legacy_training_job(is_dev:bool, exp_name:str, exp_description:str, params:dict, tags:list=None):
+  '''Initalizes and creates a neptune experiment. '''  
+
+  if os.path.exists('./artifacts'):
+    shutil.rmtree('./artifacts')
+    
+  logger = init_logger()
+  exp_tags = [f'{"dev" if is_dev else "full"}'] + tags
+  model_path = f'{ROOT_DIR}/virtuosoNet/src/old/model_run.py'
+  exp:Experiment = init_experiment(exp_name, exp_description, params, exp_tags, model_path, logger)
   logger.info('Starting experiment')
   log_neptune_timeline('Starting experiment', exp)
   return exp
@@ -67,30 +82,9 @@ def start_training(
   training_job = job(job_params, model, exp)
   return training_job.run_job(data, version=version, model_folder=model_folder)
 
-def plot_loss(train_loss:List, valid_loss:List, folder_name:str, plot_title:str, is_dev:bool):
-  max_loss = max(np.max(train_loss), np.max(valid_loss))
-  X = [i for i in range(len(train_loss))]
-  X = np.array(X)
-  fig = plt.figure(figsize=(15,8))
-  # fig = plt.figure()
-  ax = fig.add_subplot(111)
-
-  plt.plot(X, train_loss, color='b', marker='o', label='Training Loss')
-  plt.plot(X, valid_loss, color='g', marker='o', label='Valid Loss')
-  plt.legend(loc="upper right")
-  # ax.legend([train_plt, valid_plt])
-  # plt.legend([train_plt, valid_plt], ['Training Loss', 'Valid Loss'])
-  plt.ylim((0, max_loss + max_loss * 0.1))
-  plt.title(plot_title)
-  plt.xlabel('epoch number')
-  plt.ylabel('MSE')
-
-  plot_path = f'./runs/{folder_name}{"_dev" if is_dev else ""}/loss_plot.png'
-  plt.savefig(plot_path, bbox_inches='tight')
-  plt.show()
-
-def legacy_training_run_str(run_folder:str, model_folder:str, model_name:str, model_code:str, description:str, is_dev:str):
+def legacy_training_run_str(model_name:str, model_code:str, exp_description:str, exp_name:str, is_dev:str, tags:list):
+  tags_arg = ','.join(tags)
   model_run_script_path = '../../../../src/old/model_run.py'
   data_path = f'{CACHE_DATA_DIR}/train/training_data_development' if is_dev == 'true' else f'{CACHE_DATA_DIR}/train/training_data'
-  run_str = f'{model_run_script_path} -mode=train -code={model_code} -data={data_path} -run_folder={run_folder} -model_name={model_name} -model_folder={model_folder} -is_dev={is_dev} -run_description={description}'
+  run_str = f'{model_run_script_path} -mode=train -code={model_code} -data={data_path} -model_name={model_name}  -is_dev={is_dev} -exp_name={exp_name} -exp_description={exp_description} -tags={tags_arg}'
   return run_str

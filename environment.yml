@@ -15,6 +15,7 @@ dependencies:
     - nodejs
     - jupyterlab
     - psutil
+    - rope
 channels:
     - pytorch
     - anaconda
