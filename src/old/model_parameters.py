@@ -1,3 +1,4 @@
+import os
 import pickle
 from src.old import model_constants as cons
 # import model_constants as cons
@@ -38,8 +39,12 @@ class NetParams:
         self.training_args = None
 
 
-def save_parameters(param, save_name):
-    with open(save_name + ".dat", "wb") as f:
+def save_parameters(param, folder):
+    if not os.path.exists(folder):
+        os.mkdir(folder)
+        
+    save_name = f'{folder}/params.pickle'
+    with open(save_name, "wb") as f:
         pickle.dump(param, f, protocol=2)
 
 

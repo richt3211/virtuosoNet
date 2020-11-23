@@ -10,7 +10,7 @@ import matplotlib
 from src.constants import CACHE_MODEL_DIR
 
 from src.experiments.training.training import init_legacy_training_job
-from src.models.model_writer_reader import save_checkpoint 
+from src.models.model_writer_reader import save_checkpoint, save_params 
 from src.neptune import log_neptune_timeline
 matplotlib.use('Agg')
 
@@ -180,7 +180,7 @@ if args.sessMode == 'train' and not args.resumeTraining:
     NET_PARAM = param.initialize_model_parameters_by_code(args.modelCode)
     NET_PARAM.num_edge_types = N_EDGE_TYPE
     NET_PARAM.training_args = args
-    param.save_parameters(NET_PARAM, f'{args.modelCode}_param')
+    # param.save_parameters(NET_PARAM, f'./artifacts')
 elif args.resumeTraining:
     NET_PARAM = param.load_parameters(args.modelCode + '_param')
 else:
@@ -757,7 +757,7 @@ class TraningSample():
 def log_loss(loss_dict, type):
     exp.log_metric(f'{type} temp loss', loss_dict['tempo'])
     exp.log_metric(f'{type} vel loss', loss_dict['vel'])
-    exp.log_metric(f'{type} dev loss', loss_dict['deviation'])
+    exp.log_metric(f'{type} dev loss', loss_dict['dev'])
     exp.log_metric(f'{type} articul loss', loss_dict['articul'])
     exp.log_metric(f'{type} pedal loss', loss_dict['pedal'])
     exp.log_metric(f'{type} trill loss', loss_dict['trill'])
@@ -765,7 +765,7 @@ def log_loss(loss_dict, type):
     exp.log_metric(f'{type} total loss', loss_dict['total'])
 
 if args.sessMode == 'train':
-    tags = args.tags.split(',')
+    tags = args.exp_tags.split(',')
     if 'legacy' not in tags:
         tags.append('legacy')
     if args.modelCode not in tags:
@@ -786,7 +786,13 @@ if args.sessMode == 'train':
     log_timeline(message, exp)
     model_parameters = filter(lambda p: p.requires_grad, MODEL.parameters())
     params = sum([np.prod(p.size()) for p in model_parameters])
+
     message = f'Number of Network Parameters is {params}'
+    exp.log_text('number of model params', message)
+    log_timeline(message, exp)
+
+    message = repr(MODEL)
+    exp.log_text('model architecture', message)
     log_timeline(message, exp)
 
     best_prime_loss = float("inf")
@@ -987,8 +993,8 @@ if args.sessMode == 'train':
             'total': mean_train_loss
         }, 'train')
 
-        loss_str = 'Epoch [{}/{}], Loss: {:.4f}, Tempo: {:.4f}, Vel: {:.4f}, Deviation: {:.4f}, Articulation: {:.4f}, Pedal: {:.4f}, Trill: {:.4f}, KLD: {:.4f}'.format(epoch + 1, num_epochs, mean_valid_loss, np.mean(tempo_loss_total), np.mean(vel_loss_total),
-                      np.mean(dev_loss_total), np.mean(articul_loss_total), np.mean(pedal_loss_total), np.mean(trill_loss_total), np.mean(kld_total))
+        loss_str = 'Epoch [{}/{}], Loss: {:.4f}, Tempo: {:.4f}, Vel: {:.4f}, Deviation: {:.4f}, Articulation: {:.4f}, Pedal: {:.4f}, Trill: {:.4f}, KLD: {:.4f}'.format(
+            epoch + 1, num_epochs, mean_train_loss, mean_tempo_loss, mean_vel_loss, mean_deviation_loss, mean_articul_loss, mean_pedal_loss, mean_trill_loss, mean_kld_loss)
         log_timeline(loss_str, exp)
 
 
@@ -1127,6 +1133,7 @@ if args.sessMode == 'train':
         is_best_trill = mean_trill_loss < best_trill_loss
         best_trill_loss = min(mean_trill_loss, best_trill_loss)
 
+        exp.log_metric('trained epochs', epoch + 1)
         if args.trainTrill:
             save_checkpoint(
                 state = {
@@ -1155,6 +1162,9 @@ if args.sessMode == 'train':
                 exp=exp,
                 model_name='prime'
             )
+        
+        save_params('./artifacts', NET_PARAM, exp)
+
 
 
     #end of epoch

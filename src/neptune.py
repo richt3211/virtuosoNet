@@ -10,19 +10,18 @@ import zipfile
 def log_neptune_timeline(log:str, exp:Experiment):
     exp.log_text('timeline', f'{datetime.now()} - {log}')
 
-def init_experiment(exp_name:str, exp_description:str, params: dict, tags: list, model_src_path:str, logger = None):
+def init_experiment(exp_name:str, exp_description:str, params: dict, tags: list, upload_files:list, logger = None):
     '''Initalizes and creates a neptune experiment. '''  
 
     neptune.init('richt3211/thesis', api_token=NEPTUNE_TOKEN)
 
-    model_run_file_path = f"{SRC_DIR}/models/model_run_job.py"
     exp:Experiment = neptune.create_experiment(
         name=exp_name,
         description=exp_description,
         params=params,
         tags=tags,
         logger=logger,
-        upload_source_files=[model_src_path, model_run_file_path]
+        upload_source_files=upload_files
     )
     return exp
 
