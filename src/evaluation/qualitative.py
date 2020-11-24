@@ -11,7 +11,7 @@ from src.data.data_writer.data_writer import write_midi_to_raw
 from src.data.post_processing import feature_output_to_midi
 from src.keys import NEPTUNE_TOKEN
 from src.models.model_run_job import ModelJob, ModelJobParams
-from src.constants import CACHE_DATA_DIR, PRODUCTION_DATA_DIR
+from src.constants import CACHE_DATA_DIR, PRODUCTION_DATA_DIR, ROOT_DIR
 from src.models.model_writer_reader import read_checkpoint
 from music21 import midi
 
@@ -119,19 +119,35 @@ def playMidi(filename):
     s = midi.translate.midiFileToStream(mf)
     s.show('midi')
 
-def init_performance_generation(experiment_id: str, is_dev:bool) -> Experiment:
+def init_performance_generation(experiment_id: str, is_dev:bool, is_legacy:bool) -> Experiment:
     '''Initalizes and creates a neptune experiment.'''  
+
+    cache_dir = './artifacts'
+    for path in [cache_dir, 'source', 'trill_source']:
+        if os.path.exists(path):
+            shutil.rmtree(path)
+
+
+    os.mkdir(cache_dir)
+    # load the trill model and params
+    exp:Experiment = get_experiment_by_id('THESIS-75')
+    exp.download_artifact('trill_params.pickle', cache_dir)
+    exp.download_artifact('trill_best.pth', cache_dir)
+    exp.download_sources()
+
+    with zipfile.ZipFile('source.zip', 'r') as zip_ref:
+        zip_ref.extractall('./')
+    os.rename('./source', './trill_source')
 
     init_logger()
     exp:Experiment = get_experiment_by_id(experiment_id)
-    cache_dir = './artifacts'
-    if os.path.exists(cache_dir):
-        shutil.rmtree(cache_dir)
         
-    os.mkdir(cache_dir)
 
     # download model and hyper params
-    model_path = 'model_dev_best.pth' if is_dev else "model_best.pth"
+    if is_legacy:
+        model_path = 'prime_model_dev_best.pth' if is_dev else "prime_model_best.pth"
+    else:
+        model_path = 'model_dev_best.pth' if is_dev else "model_best.pth"
     exp.download_artifact(model_path, f'{cache_dir}')
     exp.download_artifact('params.pickle', f'{cache_dir}')
     exp.download_sources()
@@ -140,3 +156,9 @@ def init_performance_generation(experiment_id: str, is_dev:bool) -> Experiment:
         zip_ref.extractall('./')
 
     return exp 
+
+def legacy_test_run_str(model_code:str, exp_id:str, is_dev:str):
+  data_path = f'{CACHE_DATA_DIR}/train/training_data_development' if is_dev == 'true' else f'{CACHE_DATA_DIR}/train/training_data'
+  model_run_script_path = f'{ROOT_DIR}/virtuosoNet/src/old/model_run.py'
+  run_str = f'{model_run_script_path} -data={data_path} -mode=test_some -code={model_code} -is_dev={is_dev} -exp_id={exp_id}'
+  return run_str

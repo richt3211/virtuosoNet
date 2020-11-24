@@ -7,11 +7,13 @@ import numpy as np
 import shutil
 import os
 import matplotlib
-from src.constants import CACHE_MODEL_DIR
+from src.constants import CACHE_MODEL_DIR, PRODUCTION_DATA_DIR
+from src.evaluation.qualitative import QualitativeEvaluatorParams, init_performance_generation
 
 from src.experiments.training.training import init_legacy_training_job
-from src.models.model_writer_reader import save_checkpoint, save_params 
+from src.models.model_writer_reader import read_params, save_checkpoint, save_params 
 from src.neptune import log_neptune_timeline
+from src.old.model_parameters import load_parameters
 matplotlib.use('Agg')
 
 from datetime import datetime
@@ -62,6 +64,7 @@ parser.add_argument("-run_description", "--run_description", default="Running Mo
 parser.add_argument("-is_dev", "--is_dev", default=False, type=lambda x: (str(x).lower() == 'true'), help="Is the run on the dev set or not")
 parser.add_argument("-exp_name", "--exp_name", default="Default Neptune Experiment", type=str, help="The experiment name to log to neptune")
 parser.add_argument("-exp_description", "--exp_description", default="Default Neptune Description", type=str, help="The experiment description to log in neptune")
+parser.add_argument("-exp_id", "--exp_id", type=str, help="The neptune experiment id to use for evaluation")
 parser.add_argument("-tags", "--exp_tags", default="legacy", type=str, help="A comma separated string of tags for the neptune experiment")
 
 random.seed(0)
@@ -176,6 +179,26 @@ DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 model_name_path = f'{MODEL_DIR}/{args.modelCode}_param'
 trill_name_path = f'{MODEL_DIR}/{args.trillCode}_param'
+
+def log_perf_gen(message:str, exp:Experiment):
+    logging.info(message)
+    exp.log_text('performance generation', message)
+
+exp:Experiment = None 
+if args.sessMode == 'test_some':
+    exp = init_performance_generation(args.exp_id, args.is_dev, is_legacy=True)
+    log_perf_gen('Initialized experiment, reading params', exp)
+    NET_PARAM = read_params('./artifacts/params.pickle')
+    TrillNET_Param = read_params('./artifacts/trill_params.pickle')
+    # TrillNET_Param = param.load_parameters('./artifacts/trill_params.pickle')
+
+    # if not hasattr(NET_PARAM, 'num_edge_types'):
+    #     NET_PARAM.num_edge_types = 10
+    # if not hasattr(TrillNET_Param, 'num_edge_types'):
+    #     TrillNET_Param.num_edge_types = 10
+    TRILL_MODEL = nnModel.TrillRNN(TrillNET_Param, DEVICE).to(DEVICE)
+    log_perf_gen('Read params and loaded models', exp)
+
 if args.sessMode == 'train' and not args.resumeTraining:
     NET_PARAM = param.initialize_model_parameters_by_code(args.modelCode)
     NET_PARAM.num_edge_types = N_EDGE_TYPE
@@ -183,14 +206,14 @@ if args.sessMode == 'train' and not args.resumeTraining:
     # param.save_parameters(NET_PARAM, f'./artifacts')
 elif args.resumeTraining:
     NET_PARAM = param.load_parameters(args.modelCode + '_param')
-else:
-    NET_PARAM = param.load_parameters(model_name_path)
-    TrillNET_Param = param.load_parameters(trill_name_path)
+# else:
+    # NET_PARAM = param.load_parameters(model_name_path)
+    # TrillNET_Param = param.load_parameters(trill_name_path)
     # if not hasattr(NET_PARAM, 'num_edge_types'):
     #     NET_PARAM.num_edge_types = 10
     # if not hasattr(TrillNET_Param, 'num_edge_types'):
     #     TrillNET_Param.num_edge_types = 10
-    TRILL_MODEL = nnModel.TrillRNN(TrillNET_Param, DEVICE).to(DEVICE)
+    # TRILL_MODEL = nnModel.TrillRNN(TrillNET_Param, DEVICE).to(DEVICE)
 
 
 if 'isgn' in args.modelCode:
@@ -376,7 +399,7 @@ def scale_model_prediction_to_original(prediction, MEANS, STDS):
     return prediction
 
 
-def load_file_and_generate_performance(path_name, composer=args.composer, z=args.latent, 
+def load_file_and_generate_performance(path_name, exp:Experiment, composer=args.composer, z=args.latent,
                                         start_tempo=args.startTempo, return_features=False, multi_instruments=args.multi_instruments):
     vel_pair = (int(args.velocity.split(',')[0]), int(args.velocity.split(',')[1]))
     test_x, xml_notes, xml_doc, edges, note_locations = xml_matching.read_xml_to_array(path_name, MEANS, STDS,
@@ -437,12 +460,21 @@ def load_file_and_generate_performance(path_name, composer=args.composer, z=args
                                                            predicted=True)
     output_midi, midi_pedals = xml_matching.xml_notes_to_midi(output_xml, multi_instruments)
     piece_name = path_name.split('/')
-    save_name = 'test_result/' + piece_name[-2] + '_by_' + args.modelCode + '_z' + str(z)
-
-    perf_worm.plot_performance_worm(output_features, save_name + '.png')
+    save_folder = './artifacts'
+    save_name = f'{piece_name[-2]}_z{str(z)}'
+    midi_name = f'{save_name}.mid'
+    plot_name = f'{save_name}.png'
+    midi_path = f'{save_folder}/{midi_name}'
+    plot_path = f'{save_folder}/{plot_name}'
+    perf_worm.plot_performance_worm(output_features, plot_path)
     print(f'Saving midi performance to {save_name}')
-    xml_matching.save_midi_notes_as_piano_midi(output_midi, midi_pedals, save_name + '.mid',
+    xml_matching.save_midi_notes_as_piano_midi(output_midi, midi_pedals, midi_path,
                                                bool_pedal=args.boolPedal, disklavier=args.disklavier)
+    
+    exp.log_artifact(midi_path, f'{midi_name}')
+    exp.log_artifact(plot_path, f'{plot_name}')
+    
+
 
 
 def load_file_and_encode_style(path, perf_name, composer_name):
@@ -1170,7 +1202,7 @@ if args.sessMode == 'train':
     #end of epoch
 
 
-elif args.sessMode in ['test', 'testAll', 'testAllzero', 'encode', 'encodeAll', 'evaluate', 'correlation']:
+elif args.sessMode in ['test', 'test_some', 'testAll', 'testAllzero', 'encode', 'encodeAll', 'evaluate', 'correlation']:
 ### test session
     if os.path.isfile('prime_' + args.modelCode + args.resume):
         print("=> loading checkpoint '{}'".format(args.modelCode + args.resume))
@@ -1214,6 +1246,13 @@ elif args.sessMode in ['test', 'testAll', 'testAllzero', 'encode', 'encodeAll', 
     if args.sessMode == 'test':
         random.seed(0)
         load_file_and_generate_performance(args.testPath)
+    elif args.sessMode == 'test_some':
+        random.seed(0)
+        generation_params = QualitativeEvaluatorParams()
+        for perf in generation_params.performances:
+            path = f'{PRODUCTION_DATA_DIR}/input/{perf["song_name"]}'
+            log_perf_gen(f'creating performance for {path}', exp)
+            load_file_and_generate_performance(path, exp=exp, composer=perf['composer'], z=0, start_tempo=0)
     elif args.sessMode=='testAll':
         path_list = cons.emotion_data_path
         emotion_list = cons.emotion_key_list

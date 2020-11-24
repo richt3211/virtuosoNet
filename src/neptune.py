@@ -10,7 +10,7 @@ import zipfile
 def log_neptune_timeline(log:str, exp:Experiment):
     exp.log_text('timeline', f'{datetime.now()} - {log}')
 
-def init_experiment(exp_name:str, exp_description:str, params: dict, tags: list, upload_files:list, logger = None):
+def init_experiment(exp_name:str, exp_description:str, tags: list, params: dict=None, upload_files:list=None, logger = None):
     '''Initalizes and creates a neptune experiment. '''  
 
     neptune.init('richt3211/thesis', api_token=NEPTUNE_TOKEN)
