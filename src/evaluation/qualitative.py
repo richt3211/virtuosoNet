@@ -142,12 +142,17 @@ def init_performance_generation(experiment_id: str, is_dev:bool, is_legacy:bool)
     init_logger()
     exp:Experiment = get_experiment_by_id(experiment_id)
         
-
-    # download model and hyper params
+    # using bad names for now. Will update with correct experiment
     if is_legacy:
         model_path = 'prime_model_dev_best.pth' if is_dev else "prime_model_best.pth"
     else:
-        model_path = 'model_dev_best.pth' if is_dev else "model_best.pth"
+        model_path = 'model_dev_best.pth' if is_dev else "_best.pth"
+
+    # download model and hyper params
+    # if is_legacy:
+    #     model_path = 'prime_model_dev_best.pth' if is_dev else "prime_model_best.pth"
+    # else:
+    #     model_path = 'model_dev_best.pth' if is_dev else "model_best.pth"
     exp.download_artifact(model_path, f'{cache_dir}')
     exp.download_artifact('params.pickle', f'{cache_dir}')
     exp.download_sources()
@@ -157,8 +162,9 @@ def init_performance_generation(experiment_id: str, is_dev:bool, is_legacy:bool)
 
     return exp 
 
-def legacy_test_run_str(model_code:str, exp_id:str, is_dev:str):
+def legacy_test_run_str(model_code:str, exp_id:str, is_dev:str, bool_pedal:bool=True):
   data_path = f'{CACHE_DATA_DIR}/train/training_data_development' if is_dev == 'true' else f'{CACHE_DATA_DIR}/train/training_data'
   model_run_script_path = f'{ROOT_DIR}/virtuosoNet/src/old/model_run.py'
-  run_str = f'{model_run_script_path} -data={data_path} -mode=test_some -code={model_code} -is_dev={is_dev} -exp_id={exp_id}'
+  pedal = "true" if bool_pedal else "false"
+  run_str = f'{model_run_script_path} -data={data_path} -mode=test_some -code={model_code} -is_dev={is_dev} -exp_id={exp_id} -bp={pedal}'
   return run_str

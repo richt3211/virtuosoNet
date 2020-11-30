@@ -203,6 +203,7 @@ if args.sessMode == 'train' and not args.resumeTraining:
     NET_PARAM = param.initialize_model_parameters_by_code(args.modelCode)
     NET_PARAM.num_edge_types = N_EDGE_TYPE
     NET_PARAM.training_args = args
+    print(repr(NET_PARAM))
     # param.save_parameters(NET_PARAM, f'./artifacts')
 elif args.resumeTraining:
     NET_PARAM = param.load_parameters(args.modelCode + '_param')
@@ -1250,7 +1251,7 @@ elif args.sessMode in ['test', 'test_some', 'testAll', 'testAllzero', 'encode', 
         random.seed(0)
         generation_params = QualitativeEvaluatorParams()
         for perf in generation_params.performances:
-            path = f'{PRODUCTION_DATA_DIR}/input/{perf["song_name"]}'
+            path = f'{PRODUCTION_DATA_DIR}/input/{perf["song_name"]}/'
             log_perf_gen(f'creating performance for {path}', exp)
             load_file_and_generate_performance(path, exp=exp, composer=perf['composer'], z=0, start_tempo=0)
     elif args.sessMode=='testAll':

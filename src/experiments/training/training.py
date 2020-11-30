@@ -20,7 +20,7 @@ from neptune.experiments import Experiment
 from src.models.params import Params
 from src.neptune import init_experiment, log_neptune_timeline
 
-def init_training_job(is_dev:bool, exp_name:str, exp_description:str, hyper_params:Params, job_params: ModelJobParams, model_src_path:str, tags:list = None) -> Experiment:
+def init_training_job(is_dev:bool, exp_name:str, exp_description:str, hyper_params:Params, job_params: ModelJobParams, upload_files:list, tags:list = None) -> Experiment:
   '''Initalizes and creates a neptune experiment. '''  
 
   hyper_params_dict = asdict(hyper_params)
@@ -33,7 +33,14 @@ def init_training_job(is_dev:bool, exp_name:str, exp_description:str, hyper_para
     
   logger = init_logger()
   exp_tags = [f'{"dev" if is_dev else "full"}'] + tags
-  exp:Experiment = init_experiment(exp_name, exp_description, hyper_params_dict, exp_tags, model_src_path, logger)
+  exp:Experiment = init_experiment(
+    exp_name=exp_name, 
+    exp_description=exp_description, 
+    tags=exp_tags,
+    params=hyper_params_dict, 
+    upload_files=upload_files,
+    logger=logger
+  )
   logger.info('Starting experiment')
   log_neptune_timeline('Starting experiment', exp)
   return exp
@@ -47,7 +54,14 @@ def init_legacy_training_job(is_dev:bool, exp_name:str, exp_description:str, par
   logger = init_logger()
   exp_tags = [f'{"dev" if is_dev else "full"}'] + tags
   upload_files = [f'{SRC_DIR}/old/nnModel.py', f'{SRC_DIR}/old/model_run.py']
-  exp:Experiment = init_experiment(exp_name, exp_description, params, exp_tags, upload_files, logger)
+  exp:Experiment = init_experiment(
+    exp_name=exp_name, 
+    exp_description=exp_description, 
+    params=params, 
+    tags=exp_tags, 
+    upload_files=upload_files, 
+    logger=logger
+  )
   logger.info('Starting experiment')
   log_neptune_timeline('Starting experiment', exp)
   return exp
@@ -68,19 +82,40 @@ def get_full_data(exp:Experiment):
   dev_data = read_featurized(path, exp)
   return dev_data
 
-def start_training(
-  data, 
-  version:float, 
-  job, 
-  job_params:ModelJobParams, 
+def run_training_experiment(
+  exp_name:str, 
+  exp_description:str, 
+  tags:list, 
+  is_dev:bool, 
+  hyper_params:Params, 
+  job_params:Params, 
+  model_file_path:str, 
+  model_folder:str, 
   model_class, 
-  model_hyper_params, 
-  model_folder:str,
-  exp: Experiment
+  job_class
 ):
-  model = model_class(model_hyper_params)
-  training_job = job(job_params, model, exp)
-  return training_job.run_job(data, version=version, model_folder=model_folder)
+  model_run_path = f"{SRC_DIR}/models/model_run_job.py"
+  upload_files = [model_file_path, model_run_path]
+  exp = init_training_job(
+    is_dev=is_dev,
+    exp_name=exp_name,
+    exp_description=exp_description,
+    hyper_params=hyper_params,
+    job_params=job_params,
+    tags=tags,
+    upload_files=upload_files
+  )
+
+  if is_dev:
+    data = get_dev_data(exp)
+  else:
+    data = get_full_data(exp)
+
+  model = model_class(hyper_params)
+  training_job = job_class(job_params, model, exp)
+  return training_job.run_job(data, model_folder=model_folder)
+  
+
 
 def legacy_training_run_str(model_name:str, model_code:str, exp_description:str, exp_name:str, is_dev:str, tags:list):
   tags_arg = ','.join(tags)
@@ -88,3 +123,20 @@ def legacy_training_run_str(model_name:str, model_code:str, exp_description:str,
   data_path = f'{CACHE_DATA_DIR}/train/training_data_development' if is_dev == 'true' else f'{CACHE_DATA_DIR}/train/training_data'
   run_str = f'{model_run_script_path} -mode=train -code={model_code} -data={data_path} -model_name={model_name}  -is_dev={is_dev} -exp_name={exp_name} -exp_description={exp_description} -tags={tags_arg}'
   return run_str
+
+# is_dev=True
+# hyper_params = TransformerEncoderHyperParams()
+# job_params = TransformerEncoderJobParams(is_dev=is_dev, epochs=50)
+# model_file_path = f"{SRC_DIR}/models/transformer.py"
+# run_training_experiment(
+#     exp_name="With Tempo Loss",
+#     exp_description="Running with tempo loss instead of note loss"
+#     tags=['transformer_encoder']
+#     is_dev=is_dev,
+#     hyper_params=hyper_params,
+#     job_params=job_params,
+#     model_file_path=model_file_path,
+#     model_folder="transfomer/transformer_encoder",
+#     model_class=TransformerEncoder,
+#     job_class=TransformerEncoderJob
+# )

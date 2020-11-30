@@ -38,6 +38,8 @@ class ModelJobParams(Params):
     num_tempo_param:int = 1
     num_prime_param:int = 11
 
+    tempo_loss:bool = True
+
 class ModelJob():
 
     def __init__(self, params:ModelJobParams, model:nn.Module, exp:Experiment):
@@ -57,10 +59,10 @@ class ModelJob():
         self.model = model
         self.num_updated = 0
 
-    def run_job(self, data, version, model_folder):
+    def run_job(self, data, model_folder):
         try:
             type = "DEV" if self.params.is_dev else ""
-            start_message = f"STARTING {self.model_name} TRAINING VERSION {version} JOB AT {self.params.epochs} EPOCHS FOR {type} DATA SET"
+            start_message = f"STARTING {self.model_name} JOB AT {self.params.epochs} EPOCHS FOR {type} DATA SET"
             log_neptune_timeline(start_message, self.exp)
             logging.info(start_message)
             sendToDiscord(start_message)
@@ -74,10 +76,9 @@ class ModelJob():
             logging.info(architecture)
 
             # training_loss_total, valid_loss_total = self.train(self.model, data, version, model_folder)
-            self.train(self.model, data, version, model_folder)
+            self.train(self.model, data, model_folder)
 
-
-            end_message = f'FINISHED {self.model_name} VERSION {version} TRAINING JOB AT {self.params.epochs} EPOCHS FOR {type} DATA SET'
+            end_message = f'FINISHED {self.model_name} TRAINING JOB AT {self.params.epochs} EPOCHS FOR {type} DATA SET'
             log_neptune_timeline(end_message, self.exp)
             logging.info(end_message)
             sendToDiscord(end_message)
@@ -91,7 +92,7 @@ class ModelJob():
             sendToDiscord("There was an error during training for the HAN BL training job, please check logs")
             raise e
 
-    def train(self, model, data, version, model_folder):
+    def train(self, model, data, model_folder):
         best_loss = float('inf')
         for epoch in range(self.params.epochs):
             epoch_num = epoch +1
@@ -115,13 +116,18 @@ class ModelJob():
             is_best = mean_valid_loss < best_loss
             best_loss = min(mean_valid_loss, best_loss)
 
-            save_checkpoint({
-                'epoch': epoch + 1,
-                'state_dict': model.state_dict(),
-                'best_valid_loss': best_loss,
-                'optimizer': self.optimizer.state_dict(),
-                'training_step': self.num_updated
-            }, is_best, model_folder, self.params, self.exp)
+            save_checkpoint(
+                state={
+                    'epoch': epoch + 1,
+                    'state_dict': model.state_dict(),
+                    'best_valid_loss': best_loss,
+                    'optimizer': self.optimizer.state_dict(),
+                    'training_step': self.num_updated
+                }, 
+                is_best=is_best, 
+                is_dev=self.params.is_dev,
+                exp=self.exp,
+            )
             save_params(model_folder, self.model.params, self.exp)
 
             message = f'saving model at epoch {epoch +1} as the best model'
@@ -201,61 +207,67 @@ class ModelJob():
             self.num_updated += 1
 
 
-    def calculate_loss(self, outputs, batches):
-        prime_batch_y = batches['batch_y']
-        align_matched = batches['align_matched']
-        pedal_status = batches['pedal_status']
+    # def calculate_loss(self, outputs, batches):
+    #     prime_batch_y = batches['batch_y']
+    #     align_matched = batches['align_matched']
+    #     pedal_status = batches['pedal_status']
 
-        tempo_loss = self.han_criterion(
-            outputs[:, :, 0:1], 
-            prime_batch_y[:, :, 0:1], align_matched
-        )
-        vel_loss = self.han_criterion(
-            outputs[:, :, self.params.vel_param_idx:self.params.dev_param_idx], 
-            prime_batch_y[:, :, self.params.vel_param_idx:self.params.dev_param_idx], 
-            align_matched
-        )
-        dev_loss = self.han_criterion(
-            outputs[:, :, self.params.dev_param_idx:self.params.articul_param_idx], 
-            prime_batch_y[:, :, self.params.dev_param_idx:self.params.articul_param_idx], 
-            align_matched
-        )
-        articul_loss = self.han_criterion(
-            outputs[:, :, self.params.articul_param_idx:self.params.pedal_param_idx], 
-            prime_batch_y[:, :, self.params.articul_param_idx:self.params.pedal_param_idx], 
-            pedal_status
-        )
-        pedal_loss = self.han_criterion(
-            outputs[:, :, self.params.pedal_param_idx:], 
-            prime_batch_y[:, :, self.params.pedal_param_idx:], 
-            align_matched
-        )
-        total_loss = (tempo_loss + vel_loss + dev_loss + articul_loss + pedal_loss * 7) / 11
+    #     tempo_loss = self.han_criterion(
+    #         outputs, 
+    #         prime_batch_y,
+    #         batches['']
+    #     )
+    #     tempo_loss = self.han_criterion(
+    #         outputs[:, :, 0:1], 
+    #         prime_batch_y[:, :, 0:1], align_matched
+    #     )
+    #     vel_loss = self.han_criterion(
+    #         outputs[:, :, self.params.vel_param_idx:self.params.dev_param_idx], 
+    #         prime_batch_y[:, :, self.params.vel_param_idx:self.params.dev_param_idx], 
+    #         align_matched
+    #     )
+    #     dev_loss = self.han_criterion(
+    #         outputs[:, :, self.params.dev_param_idx:self.params.articul_param_idx], 
+    #         prime_batch_y[:, :, self.params.dev_param_idx:self.params.articul_param_idx], 
+    #         align_matched
+    #     )
+    #     articul_loss = self.han_criterion(
+    #         outputs[:, :, self.params.articul_param_idx:self.params.pedal_param_idx], 
+    #         prime_batch_y[:, :, self.params.articul_param_idx:self.params.pedal_param_idx], 
+    #         pedal_status
+    #     )
+    #     pedal_loss = self.han_criterion(
+    #         outputs[:, :, self.params.pedal_param_idx:], 
+    #         prime_batch_y[:, :, self.params.pedal_param_idx:], 
+    #         align_matched
+    #     )
+    #     total_loss = (tempo_loss + vel_loss + dev_loss + articul_loss + pedal_loss * 7) / 11
 
-        return tempo_loss, vel_loss, dev_loss, articul_loss, pedal_status, torch.zeros(1), total_loss
+    #     return tempo_loss, vel_loss, dev_loss, articul_loss, pedal_status, torch.zeros(1), total_loss
 
     def get_batch_and_alignment(self, data):
         batch_start, batch_end = data['slice_idx']
         batch_x, batch_y = self.handle_data_in_tensor(data['x'][batch_start:batch_end], data['y'][batch_start:batch_end])
 
-        batch_x_ = batch_x.view((self.params.batch_size, -1, self.params.input_size))
-        batch_y_ = batch_y.view((self.params.batch_size, -1, self.params.output_size))
+        # batch_x_ = batch_x.view((self.params.batch_size, -1, self.params.input_size))
+        # batch_y_ = batch_y.view((self.params.batch_size, -1, self.params.output_size))
 
         batch_x = batch_x.view((-1, self.params.batch_size, self.params.input_size))
         batch_y = batch_y.view((-1, self.params.batch_size, self.params.output_size))
 
-        align_matched_ = torch.Tensor(data['align_matched'][batch_start:batch_end]).view((self.params.batch_size, -1, 1)).to(self.params.
-        device)
-        pedal_status_ = torch.Tensor(data['pedal_status'][batch_start:batch_end]).view((self.params.batch_size, -1, 1)).to(self.params.device)
+        # align_matched_ = torch.Tensor(data['align_matched'][batch_start:batch_end]).view((self.params.batch_size, -1, 1)).to(self.params.
+        # device)
+        # pedal_status_ = torch.Tensor(data['pedal_status'][batch_start:batch_end]).view((self.params.batch_size, -1, 1)).to(self.params.device)
 
-        align_matched = torch.Tensor(data['align_matched'][batch_start:batch_end]).view((-1, self.params.batch_size, 1)).to(self.params.
-        device)
+        # note_locations = torch.Tensor(data['note_locations'][batch_start:batch_end]).view((-1, self.params.batch_size, 1)).to(self.params.device)
+        align_matched = torch.Tensor(data['align_matched'][batch_start:batch_end]).view((-1, self.params.batch_size, 1)).to(self.params.device)
         pedal_status = torch.Tensor(data['pedal_status'][batch_start:batch_end]).view((-1, self.params.batch_size, 1)).to(self.params.device)
+
 
         prime_batch_x = batch_x
         prime_batch_y = batch_y[:, :, 0:self.params.num_prime_param]
 
-        return prime_batch_x, prime_batch_y, align_matched, pedal_status
+        return prime_batch_x, prime_batch_y, data['note_locations'], align_matched, pedal_status, batch_start
         # return {
         #     'batch_x': prime_batch_x,
         #     'batch_y': prime_batch_y,
@@ -264,12 +276,12 @@ class ModelJob():
         # }
 
     def batch_time_step_run(self, data, model, feature_loss, loss, train=True):
-        batch_x, batch_y, align_matched, pedal_status = self.get_batch_and_alignment(data)
+        batch_x, batch_y, note_locations, align_matched, pedal_status, batch_start = self.get_batch_and_alignment(data)
 
         self.zero_grad_optim()
         outputs = model(batch_x)
 
-        tempo_loss, vel_loss, dev_loss, articul_loss, pedal_loss, trill_loss, total_loss = self.calculate_loss(outputs, batch_y, align_matched, pedal_status)
+        tempo_loss, vel_loss, dev_loss, articul_loss, pedal_loss, trill_loss, total_loss = self.calculate_loss(outputs, batch_y, note_locations, align_matched, pedal_status, batch_start)
         if train:
             self.step_optimizer(model, total_loss)
 
@@ -284,12 +296,15 @@ class ModelJob():
 
         return outputs
 
-    def calculate_loss(self, outputs, batch_y, align_matched, pedal_status):
-        tempo_loss = self.han_criterion(
-            outputs[:, :, 0:1], 
-            batch_y[:, :, 0:1], 
-            align_matched
-        )
+    def calculate_loss(self, outputs, batch_y, note_locations, align_matched, pedal_status, batch_start):
+        if not self.params.tempo_loss:
+            tempo_loss = self.han_criterion(
+                outputs[:, :, 0:1], 
+                batch_y[:, :, 0:1], 
+                align_matched
+            )
+        else:
+            tempo_loss = self.cal_tempo_loss_in_beat(outputs, batch_y, note_locations, batch_start)
         vel_loss = self.han_criterion(
             outputs[:, :, self.params.vel_param_idx:self.params.dev_param_idx], 
             batch_y[:, :, self.params.vel_param_idx:self.params.dev_param_idx], 
@@ -338,7 +353,7 @@ class ModelJob():
                 pred_beat_tempo[current_beat-start_beat] = pred_x[0,i,self.params.qpm_index:self.params.qpm_index + self.params.num_tempo_param]
                 true_beat_tempo[current_beat-start_beat] = true_x[0,i,self.params.qpm_index:self.params.qpm_index + self.params.num_tempo_param]
 
-        tempo_loss = self.criterion(pred_beat_tempo, true_beat_tempo)
+        tempo_loss = self.han_criterion(pred_beat_tempo, true_beat_tempo)
         # if args.deltaLoss and pred_beat_tempo.shape[0] > 1:
         #     prediction_delta = pred_beat_tempo[1:] - pred_beat_tempo[:-1]
         #     true_delta = true_beat_tempo[1:] - true_beat_tempo[:-1]

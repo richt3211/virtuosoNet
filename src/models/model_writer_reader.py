@@ -17,7 +17,7 @@ def save_checkpoint(state, is_best:bool, is_dev:bool, exp:Experiment, folder:str
         folder = f'./artifacts'
         if not os.path.exists(folder):
             os.makedirs(folder)
-    file_name = f'{model_name}_model' if model_name else ''
+    file_name = f'{model_name}_model' if model_name else 'model'
     if is_dev:
         file_name = f'{file_name}_dev.pth'
     else:

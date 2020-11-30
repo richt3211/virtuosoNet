@@ -32,7 +32,7 @@ class NetParams:
         self.num_attention_head = 8
         self.is_graph = False
         self.is_teacher_force = False
-        self.is_baseline = True
+        self.is_baseline = False
         self.hierarchy_level = None
         self.is_simplified = False
         self.is_test_version = False
