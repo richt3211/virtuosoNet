@@ -12,7 +12,7 @@ from src.data.post_processing import feature_output_to_midi
 from src.keys import NEPTUNE_TOKEN
 from src.models.model_run_job import ModelJob, ModelJobParams
 from src.constants import CACHE_DATA_DIR, PRODUCTION_DATA_DIR, ROOT_DIR
-from src.models.model_writer_reader import read_checkpoint
+from src.models.model_writer_reader import read_checkpoint, read_params
 from music21 import midi
 
 import src.old.data_process as dp
@@ -32,10 +32,15 @@ class QualitativeEvaluatorParams(Params):
 
 class QualitativeEvaluator():
     
-    def __init__(self, params:QualitativeEvaluatorParams, model:nn.Module, exp:Experiment):
-        self.params = params
-        self.model = model.to(self.params.device_num)
+    # def __init__(self, params:QualitativeEvaluatorParams, model:nn.Module, exp:Experiment):
+    #     self.params = params
+    #     self.model = model.to(self.params.device_num)
+    #     self.exp = exp
+
+    def __init__(self, exp:Experiment, model:nn.Module):
         self.exp = exp
+        self.params = QualitativeEvaluatorParams()
+        self.model = model
 
     def generate_performances(self, model_path):
         for perf in self.params.performances:
@@ -76,13 +81,6 @@ class QualitativeEvaluator():
         write_midi_to_raw(perf_name, self.exp, output_features, output_midi, midi_pedals, pedal, disklavier )
 
     def model_inference(self, input_x, input_y, note_locations, num_notes):
-        pass
-
-class HANBLQualitativeEvaluator(QualitativeEvaluator):
-    def __init__(self, params, model, exp):
-        super().__init__(params, model, exp)
-
-    def model_inference(self, input_x, input_y, note_locations, num_notes):
         total_output = []
         with torch.no_grad():  
             measure_numbers = [x.measure for x in note_locations]
@@ -90,26 +88,32 @@ class HANBLQualitativeEvaluator(QualitativeEvaluator):
             for slice_idx in slice_indexes:
                 batch_start, batch_end = slice_idx
                 batch_input = input_x[:, batch_start:batch_end, :].view(1,-1,self.params.input_size)
-                batch_input_y = input_y[:, batch_start:batch_end, :].view(1,-1,self.params.output_size)
-                temp_outputs,_,_,_ = self.model(batch_input, batch_input_y, note_locations, batch_start, initial_z='zero')
+                temp_outputs = self.model(batch_input) # type: ignore
                 total_output.append(temp_outputs)
         return total_output
+
+class LSTMBaselineQualitativeEvalutor(QualitativeEvaluator):
+    def __init__(self, exp:Experiment, hyper_params_path:str='./artifacts/params.pickle', is_dynamic_source:bool=True):
+        if is_dynamic_source:
+            from source.models.lstm_bl import LSTMBaseline # type: ignore
+        else:
+            from src.models.lstm_bl import LSTMBaseline
+        
+        hyper_params = read_params(hyper_params_path)
+        model = LSTMBaseline(hyper_params)
+        super().__init__(exp, model)
 
 class TransformerEncoderQualitativeEvaluator(QualitativeEvaluator):
-    def __init__(self, params, model, exp):
-        super().__init__(params, model, exp)
+    def __init__(self, exp, hyper_params_path:str='./artifacts/params.pickle', is_dynamic_source:bool=True):
+        if is_dynamic_source:
+            from source.models.transformer import TransformerEncoder # type: ignore
+        else:
+            from src.models.transformer import TransformerEncoder
+        
+        hyper_params = read_params(hyper_params_path)
+        model = TransformerEncoder(hyper_params)
+        super().__init__(exp, model)
 
-    def model_inference(self, input_x, input_y, note_locations, num_notes):
-        total_output = []
-        with torch.no_grad():  
-            measure_numbers = [x.measure for x in note_locations]
-            slice_indexes = dp.make_slicing_indexes_by_measure(num_notes, measure_numbers, steps=self.params.time_steps, overlap=False)
-            for slice_idx in slice_indexes:
-                batch_start, batch_end = slice_idx
-                batch_input = input_x[:, batch_start:batch_end, :].view(1,-1,self.params.input_size)
-                temp_outputs = self.model(batch_input)
-                total_output.append(temp_outputs)
-        return total_output
 
 def playMidi(filename):
     mf = midi.MidiFile()
@@ -137,6 +141,7 @@ def init_performance_generation(experiment_id: str, is_dev:bool, is_legacy:bool)
 
     with zipfile.ZipFile('source.zip', 'r') as zip_ref:
         zip_ref.extractall('./')
+        
     os.rename('./source', './trill_source')
 
     init_logger()

@@ -26,7 +26,7 @@ def save_checkpoint(state, is_best:bool, is_dev:bool, exp:Experiment, folder:str
     torch.save(state, filepath)
     exp.log_artifact(filepath, file_name)
     if is_best:
-        file_name = f'{model_name}_model' if model_name else '' 
+        file_name = f'{model_name}_model' if model_name else 'model' 
         if is_dev:
             file_name = f'{file_name}_dev_best.pth'
         else:
