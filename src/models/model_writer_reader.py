@@ -49,13 +49,15 @@ def save_params(folder:str, params, exp:Experiment):
         exp.log_artifact(model_params_file_name, 'params.pickle')
 
 def read_checkpoint(model:nn.Module, filepath, device):
-    torch.cuda.set_device(device)
-    if torch.cuda.is_available():
-        map_location = lambda storage, loc: storage.cuda()
-    else:
-        map_location = 'cpu'
-    checkpoint = torch.load(filepath, map_location=map_location)
-    return model.load_state_dict(checkpoint['state_dict'])
+    # if torch.cuda.is_available():
+    #     map_location = lambda storage, loc: storage.cuda()
+    # else:
+    #     map_location = 'cpu'
+    # checkpoint = torch.load(filepath, map_location=map_location)
+    checkpoint = torch.load(filepath)
+    model.load_state_dict(checkpoint['state_dict']) 
+    model.to(device)
+    return model
 
 def read_params(filepath):
     with open(filepath, 'rb') as f:

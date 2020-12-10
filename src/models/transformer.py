@@ -13,8 +13,8 @@ from src.models.params import Params
 class TransformerEncoderHyperParams(Params):
 
     num_head:int = 6
-    hidden_size:int = 128
-    num_layers:int = 5
+    hidden_size:int = 256
+    num_layers:int = 12
     dropout:float = 0.1
 
 class TransformerEncoder(nn.Module):

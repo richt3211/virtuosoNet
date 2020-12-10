@@ -37,16 +37,16 @@ class TransformerEncoderJob(ModelJob):
         torch.nn.utils.clip_grad_norm_(model.parameters(), self.params.grad_clip)
         self.optimizer.step()
 
-    def save_params(self, folder):
-        folder = f'{CACHE_MODEL_DIR}/{folder}'
+    # def save_params(self, folder):
+    #     folder = f'{CACHE_MODEL_DIR}/{folder}'
 
-        # save model hyperparameters
-        model_params_file_name = f'{folder}/params.pickle'
-        if not os.path.exists(model_params_file_name):
-            with open(model_params_file_name, 'wb') as file:
-                pickle.dump(self.model.params, file)
+    #     # save model hyperparameters
+    #     model_params_file_name = f'{folder}/params.pickle'
+    #     if not os.path.exists(model_params_file_name):
+    #         with open(model_params_file_name, 'wb') as file:
+    #             pickle.dump(self.model.params, file)
             
-            # save to neptune
-            self.exp.log_artifact(model_params_file_name, 'params.pickle')
+    #         # save to neptune
+    #         self.exp.log_artifact(model_params_file_name, 'params.pickle')
 
     

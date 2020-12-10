@@ -26,6 +26,7 @@ def init_training_job(is_dev:bool, exp_name:str, exp_description:str, hyper_para
   hyper_params_dict = asdict(hyper_params)
   job_params_dict = asdict(job_params)
   hyper_params_dict.update(job_params_dict)
+  hyper_params_dict['device'] = f'cuda:{hyper_params.device_num}' 
   print(json.dumps(hyper_params_dict, indent=4))
 
   if os.path.exists('./artifacts'):
@@ -113,7 +114,7 @@ def run_training_experiment(
 
   model = model_class(hyper_params)
   training_job = job_class(job_params, model, exp)
-  return training_job.run_job(data, model_folder=model_folder)
+  training_job.run_job(data, model_folder=model_folder)
   
 
 

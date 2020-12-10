@@ -28,5 +28,5 @@ class LSTMBaselineTraining(ModelJob):
 
     def step_optimizer(self, model, total_loss):
         total_loss.backward()
-        # torch.nn.utils.clip_grad_norm_(model.parameters(), self.params.grad_clip)
+        torch.nn.utils.clip_grad_norm_(model.parameters(), self.params.grad_clip)
         self.optimizer.step()

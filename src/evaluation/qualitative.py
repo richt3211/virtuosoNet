@@ -1,20 +1,18 @@
-from dataclasses import asdict, dataclass
-import logging
-import shutil
 from src.logger import init_logger
 from src.models.params import Params
-from src.neptune import get_experiment_by_id, log_neptune_timeline
+from src.neptune import get_experiment_by_id 
 from neptune.experiments import Experiment
 from src.data.data_reader.read_pre_processed import read_single_score
 from src.data.data_reader.read_featurized_cache import read_featurized_stats
 from src.data.data_writer.data_writer import write_midi_to_raw
 from src.data.post_processing import feature_output_to_midi
-from src.keys import NEPTUNE_TOKEN
-from src.models.model_run_job import ModelJob, ModelJobParams
-from src.constants import CACHE_DATA_DIR, PRODUCTION_DATA_DIR, ROOT_DIR
+from src.constants import CACHE_DATA_DIR, DEVELOPMENT_DATA_DIR, PRODUCTION_DATA_DIR, ROOT_DIR
 from src.models.model_writer_reader import read_checkpoint, read_params
 from music21 import midi
+from dataclasses import asdict, dataclass
 
+import logging
+import shutil
 import src.old.data_process as dp
 import torch
 import torch.nn as nn
@@ -25,9 +23,44 @@ import zipfile
 @dataclass
 class QualitativeEvaluatorParams(Params):
     performances = [
-        {'song_name': 'chopin_fantasie_impromptu', 'composer': 'Chopin'}, 
-        {'song_name': 'bwv_855_prelude', 'composer': 'Bach'},
-        {'song_name': 'mozart_sonata_11_1', 'composer': 'Mozart'}
+        {
+            'song_path': f'{PRODUCTION_DATA_DIR}/input/chopin_fantasie_impromptu/', 
+            'perf_name': 'chopin_fantasie_impromptu',
+            'composer': 'Chopin',
+            'is_dev': False
+        }, 
+        {
+            'song_path': f'{PRODUCTION_DATA_DIR}/input/bwv_855_prelude/', 
+            'perf_name': 'bach_bwv_855_prelude',
+            'composer': 'Bach',
+            'is_dev': False
+
+        },
+        {
+            'song_path': f'{PRODUCTION_DATA_DIR}/input/mozart_sonata_11_1/', 
+            'perf_name': 'mozart_sonata_11_1',
+            'composer': 'Mozart',
+            'is_dev': False
+
+        },
+        {
+            'song_path': f'{DEVELOPMENT_DATA_DIR}/Beethoven/Piano_Sonatas/17-1/', 
+            'perf_name': 'beethoven_sonata_17_1',
+            'composer': 'Beethoven',
+            'is_dev': True
+        },
+        {
+            'song_path': f'{DEVELOPMENT_DATA_DIR}/Chopin/Etudes_op_10/12/', 
+            'perf_name': 'chopin_etudes_op_10_12',
+            'composer': 'Chopin',
+            'is_dev': True
+        },
+        {
+            'song_path': f'{DEVELOPMENT_DATA_DIR}/Bach/Prelude/bwv_858/', 
+            'perf_name': 'bach_bwv_858_prelude',
+            'composer': 'Bach',
+            'is_dev': True
+        },
     ]
 
 class QualitativeEvaluator():
@@ -42,19 +75,21 @@ class QualitativeEvaluator():
         self.params = QualitativeEvaluatorParams()
         self.model = model
 
-    def generate_performances(self, model_path):
+    def generate_performances(self, model_path:str='./artifacts/model_best.pth'):
         for perf in self.params.performances:
-            message = f'Generating performance for {perf["song_name"]}'
+            message = f'Generating performance for {perf["perf_name"]}'
             self.exp.log_text('performance generation', message)
             logging.info(message)
             self.generate_performance_for_file(
-                perf_name=perf['song_name'],
+                song_path=perf['song_path'],
+                perf_name=perf['perf_name'],
                 composer_name=perf['composer'],
                 model_path=model_path,
             )
 
     def generate_performance_for_file(self, 
-        perf_name, 
+        song_path, 
+        perf_name,
         composer_name, 
         model_path, 
         tempo=0, 
@@ -62,15 +97,15 @@ class QualitativeEvaluator():
         pedal=True,
         disklavier=False
     ):
-        xml_file_path = f'{PRODUCTION_DATA_DIR}/input/{perf_name}/' 
+        # xml_file_path = f'{PRODUCTION_DATA_DIR}/input/{perf_path}/' 
         means,stds = read_featurized_stats(f'{CACHE_DATA_DIR}/train/training_data_stat.pickle')
         test_x, xml_notes, xml_doc, edges, note_locations = \
-            read_single_score(xml_file_path, composer_name, means, stds, mean_vel, tempo )
+            read_single_score(song_path, composer_name, means, stds, mean_vel, tempo )
         
-        read_checkpoint(self.model, model_path, self.params.device_num)
+        read_checkpoint(self.model, model_path, self.params.device)
         self.model.eval()
         batch_x = torch.Tensor(test_x)
-        input_x = batch_x.to(self.params.device_num).view(1, -1, self.params.input_size)
+        input_x = batch_x.to(self.params.device).view(1, -1, self.params.input_size)
         num_notes = len(test_x)
         input_y = torch.zeros(1, num_notes, self.params.output_size).to(self.params.device)
         
@@ -92,10 +127,10 @@ class QualitativeEvaluator():
                 total_output.append(temp_outputs)
         return total_output
 
-class LSTMBaselineQualitativeEvalutor(QualitativeEvaluator):
+class LSTMBaselineQualitativeEvaluator(QualitativeEvaluator):
     def __init__(self, exp:Experiment, hyper_params_path:str='./artifacts/params.pickle', is_dynamic_source:bool=True):
         if is_dynamic_source:
-            from source.models.lstm_bl import LSTMBaseline # type: ignore
+            from source.lstm_bl import LSTMBaseline # type: ignore
         else:
             from src.models.lstm_bl import LSTMBaseline
         
@@ -106,7 +141,7 @@ class LSTMBaselineQualitativeEvalutor(QualitativeEvaluator):
 class TransformerEncoderQualitativeEvaluator(QualitativeEvaluator):
     def __init__(self, exp, hyper_params_path:str='./artifacts/params.pickle', is_dynamic_source:bool=True):
         if is_dynamic_source:
-            from source.models.transformer import TransformerEncoder # type: ignore
+            from source.transformer import TransformerEncoder # type: ignore
         else:
             from src.models.transformer import TransformerEncoder
         
@@ -123,7 +158,7 @@ def playMidi(filename):
     s = midi.translate.midiFileToStream(mf)
     s.show('midi')
 
-def init_performance_generation(experiment_id: str, is_dev:bool, is_legacy:bool) -> Experiment:
+def init_performance_generation(experiment_id: str, model_name:str) -> Experiment:
     '''Initalizes and creates a neptune experiment.'''  
 
     cache_dir = './artifacts'
@@ -147,18 +182,7 @@ def init_performance_generation(experiment_id: str, is_dev:bool, is_legacy:bool)
     init_logger()
     exp:Experiment = get_experiment_by_id(experiment_id)
         
-    # using bad names for now. Will update with correct experiment
-    if is_legacy:
-        model_path = 'prime_model_dev_best.pth' if is_dev else "prime_model_best.pth"
-    else:
-        model_path = 'model_dev_best.pth' if is_dev else "_best.pth"
-
-    # download model and hyper params
-    # if is_legacy:
-    #     model_path = 'prime_model_dev_best.pth' if is_dev else "prime_model_best.pth"
-    # else:
-    #     model_path = 'model_dev_best.pth' if is_dev else "model_best.pth"
-    exp.download_artifact(model_path, f'{cache_dir}')
+    exp.download_artifact(model_name, f'{cache_dir}')
     exp.download_artifact('params.pickle', f'{cache_dir}')
     exp.download_sources()
 

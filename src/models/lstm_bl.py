@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.init as init
 import torch.nn.functional as F
 import torch.optim as optim
 import time
@@ -19,7 +20,7 @@ from dataclasses import dataclass
 class LSTMBaselineHyperParams(Params):
     num_layers:int = 3
     hidden_size:int = 256
-    dropout:int = 0.5
+    dropout:float = 0.1
 
 class LSTMBaseline(nn.Module):
     def __init__(self, params: LSTMBaselineHyperParams):
@@ -34,7 +35,13 @@ class LSTMBaseline(nn.Module):
             # bidirectional=True
         )
         self.decoder = nn.Linear(self.params.hidden_size, self.params.output_size)
+        # self.init_weights()
 
+    # def init_weights(self):
+    #     y = self.params.input_size
+    #     for weight in self.lstm_encoder.parameters():
+    #         init.normal_(weight, 0.0, 1/np.sqrt(y))
+    #     self.decoder.weight.data.normal_(0.0, (1/np.sqrt(y)))
 
     def forward(self, x: torch.Tensor):
         lstm_out, _ = self.lstm_encoder(x)

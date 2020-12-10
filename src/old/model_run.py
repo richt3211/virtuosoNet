@@ -186,7 +186,8 @@ def log_perf_gen(message:str, exp:Experiment):
 
 exp:Experiment = None 
 if args.sessMode == 'test_some':
-    exp = init_performance_generation(args.exp_id, args.is_dev, is_legacy=True)
+    model_name = 'prime_model_best.pth'
+    exp = init_performance_generation(args.exp_id, model_name)
     log_perf_gen('Initialized experiment, reading params', exp)
     NET_PARAM = read_params('./artifacts/params.pickle')
     TrillNET_Param = read_params('./artifacts/trill_params.pickle')
@@ -400,7 +401,7 @@ def scale_model_prediction_to_original(prediction, MEANS, STDS):
     return prediction
 
 
-def load_file_and_generate_performance(path_name, exp:Experiment, composer=args.composer, z=args.latent,
+def load_file_and_generate_performance(path_name, song_name:str, exp:Experiment, composer=args.composer, z=args.latent,
                                         start_tempo=args.startTempo, return_features=False, multi_instruments=args.multi_instruments):
     vel_pair = (int(args.velocity.split(',')[0]), int(args.velocity.split(',')[1]))
     test_x, xml_notes, xml_doc, edges, note_locations = xml_matching.read_xml_to_array(path_name, MEANS, STDS,
@@ -460,9 +461,8 @@ def load_file_and_generate_performance(path_name, exp:Experiment, composer=args.
     output_xml = xml_matching.apply_tempo_perform_features(xml_doc, xml_notes, output_features, start_time=1,
                                                            predicted=True)
     output_midi, midi_pedals = xml_matching.xml_notes_to_midi(output_xml, multi_instruments)
-    piece_name = path_name.split('/')
     save_folder = './artifacts'
-    save_name = f'{piece_name[-2]}_z{str(z)}'
+    save_name = f'{song_name}_z{str(z)}'
     midi_name = f'{save_name}.mid'
     plot_name = f'{save_name}.png'
     midi_path = f'{save_folder}/{midi_name}'
@@ -788,7 +788,7 @@ class TraningSample():
 
 
 def log_loss(loss_dict, type):
-    exp.log_metric(f'{type} temp loss', loss_dict['tempo'])
+    exp.log_metric(f'{type} tempo loss', loss_dict['tempo'])
     exp.log_metric(f'{type} vel loss', loss_dict['vel'])
     exp.log_metric(f'{type} dev loss', loss_dict['dev'])
     exp.log_metric(f'{type} articul loss', loss_dict['articul'])
@@ -1251,9 +1251,9 @@ elif args.sessMode in ['test', 'test_some', 'testAll', 'testAllzero', 'encode', 
         random.seed(0)
         generation_params = QualitativeEvaluatorParams()
         for perf in generation_params.performances:
-            path = f'{PRODUCTION_DATA_DIR}/input/{perf["song_name"]}/'
-            log_perf_gen(f'creating performance for {path}', exp)
-            load_file_and_generate_performance(path, exp=exp, composer=perf['composer'], z=0, start_tempo=0)
+            # path = f'{PRODUCTION_DATA_DIR}/input/{perf["song_name"]}/'
+            log_perf_gen(f'creating performance for {perf["song_path"]}', exp)
+            load_file_and_generate_performance(perf['song_path'], perf['perf_name'], exp=exp, composer=perf['composer'], z=0, start_tempo=0)
     elif args.sessMode=='testAll':
         path_list = cons.emotion_data_path
         emotion_list = cons.emotion_key_list

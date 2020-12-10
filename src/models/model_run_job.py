@@ -1,3 +1,5 @@
+from math import nan
+import math
 from time import time
 from src.logger import init_logger
 from src.constants import CACHE_MODEL_DIR
@@ -26,7 +28,7 @@ import pickle
 @dataclass
 class ModelJobParams(Params):
     qpm_index:int = 0
-    vel_param_idx:int = 0
+    vel_param_idx:int = 1
     dev_param_idx:int = 2
     articul_param_idx:int = 3
     pedal_param_idx:int = 4
@@ -171,6 +173,8 @@ class ModelJob():
                     'slice_indexes': slice_indexes
                 }
                 self.run_for_performance(training_data, model, feature_loss, total_loss, train=True)
+                # print(feature_loss)
+                # print(total_loss)
         return total_loss, feature_loss
 
     def evaluate(self, model, eval_data):
@@ -204,46 +208,11 @@ class ModelJob():
         for slice_idx in data['slice_indexes']:
             data['slice_idx'] = slice_idx
             self.batch_time_step_run(data, model, feature_loss, total_loss, train)
+            # print(feature_loss)
+            # print(total_loss)
             self.num_updated += 1
 
 
-    # def calculate_loss(self, outputs, batches):
-    #     prime_batch_y = batches['batch_y']
-    #     align_matched = batches['align_matched']
-    #     pedal_status = batches['pedal_status']
-
-    #     tempo_loss = self.han_criterion(
-    #         outputs, 
-    #         prime_batch_y,
-    #         batches['']
-    #     )
-    #     tempo_loss = self.han_criterion(
-    #         outputs[:, :, 0:1], 
-    #         prime_batch_y[:, :, 0:1], align_matched
-    #     )
-    #     vel_loss = self.han_criterion(
-    #         outputs[:, :, self.params.vel_param_idx:self.params.dev_param_idx], 
-    #         prime_batch_y[:, :, self.params.vel_param_idx:self.params.dev_param_idx], 
-    #         align_matched
-    #     )
-    #     dev_loss = self.han_criterion(
-    #         outputs[:, :, self.params.dev_param_idx:self.params.articul_param_idx], 
-    #         prime_batch_y[:, :, self.params.dev_param_idx:self.params.articul_param_idx], 
-    #         align_matched
-    #     )
-    #     articul_loss = self.han_criterion(
-    #         outputs[:, :, self.params.articul_param_idx:self.params.pedal_param_idx], 
-    #         prime_batch_y[:, :, self.params.articul_param_idx:self.params.pedal_param_idx], 
-    #         pedal_status
-    #     )
-    #     pedal_loss = self.han_criterion(
-    #         outputs[:, :, self.params.pedal_param_idx:], 
-    #         prime_batch_y[:, :, self.params.pedal_param_idx:], 
-    #         align_matched
-    #     )
-    #     total_loss = (tempo_loss + vel_loss + dev_loss + articul_loss + pedal_loss * 7) / 11
-
-    #     return tempo_loss, vel_loss, dev_loss, articul_loss, pedal_status, torch.zeros(1), total_loss
 
     def get_batch_and_alignment(self, data):
         batch_start, batch_end = data['slice_idx']
@@ -280,11 +249,23 @@ class ModelJob():
 
         self.zero_grad_optim()
         outputs = model(batch_x)
+        # print(outputs)
+        # print(outputs.shape)
+        # print(outputs[0][0])
 
         tempo_loss, vel_loss, dev_loss, articul_loss, pedal_loss, trill_loss, total_loss = self.calculate_loss(outputs, batch_y, note_locations, align_matched, pedal_status, batch_start)
+        if math.isnan(tempo_loss):
+            print(f'tempo loss is nan at time step {self.num_updated}')
+            print('model output tensor')
+            print(outputs.shape)
+            print(outputs)
+            print(outputs[0][0][0:10])
+            exit()
+
         if train:
             self.step_optimizer(model, total_loss)
 
+        # print(tempo_loss)
         feature_loss['tempo'].append(tempo_loss.item())
         feature_loss['vel'].append(vel_loss.item())
         feature_loss['dev'].append(dev_loss.item())
@@ -370,7 +351,7 @@ class ModelJob():
 
         return x.to(self.params.device), y.to(self.params.device)
 
-    def log_loss(self, total_loss: list, feature_loss: list, type:str, epoch:int):
+    def log_loss(self, total_loss: list, feature_loss, type:str, epoch:int):
         self.exp.log_metric(f'{type} total loss', epoch, np.mean(total_loss))
         log_str = f'{type} total loss: {np.mean(total_loss)}'
         for key, value in feature_loss.items():
@@ -418,7 +399,14 @@ class ModelJob():
             self.exp.log_text('error', f'{target.shape} {pred.shape}')
             sendToDiscord('There was an error with a loss calcuation, please check training logs')
             return torch.zeros(1).to(self.params.device)
-        return torch.sum(((target - pred) ** 2) * aligned_status) / data_size
+        sum = torch.sum(((target - pred) ** 2) * aligned_status) / data_size
+        if math.isnan(sum):
+            print('Loss function is nan')
+            # print(target)
+            # print(pred)
+            # print(aligned_status)
+            # print(data_size)
+        return sum
 
     def count_paramters(self):
         return sum(p.numel() for p in self.model.parameters() if p.requires_grad)
@@ -426,7 +414,7 @@ class ModelJob():
     def zero_grad_optim(self):
         pass
 
-    def init_optimizer(self):
+    def init_optimizer(self, model):
         pass
 
     def step_optimizer(self, model, total_loss):

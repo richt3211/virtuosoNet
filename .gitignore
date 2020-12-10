@@ -19,3 +19,14 @@ VqxVzJBT
 **/training_data.pickle
 **/training_data_test.pickle
 **/training_data_stat.pickle
+
+.ipynb_checkpoints
+**/.ipynb_checkpoints
+
+artifacts
+**/artifacts
+**/artifacts/*
+
+source.zip
+**/source
+**/trill_source
