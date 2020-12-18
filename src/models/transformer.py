@@ -14,7 +14,7 @@ class TransformerEncoderHyperParams(Params):
 
     num_head:int = 6
     hidden_size:int = 256
-    num_layers:int = 12
+    num_layers:int = 6
     dropout:float = 0.1
 
 class TransformerEncoder(nn.Module):

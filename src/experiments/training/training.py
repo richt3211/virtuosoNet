@@ -95,6 +95,7 @@ def run_training_experiment(
   model_class, 
   job_class
 ):
+  #TODO Set PyTorch random seed
   model_run_path = f"{SRC_DIR}/models/model_run_job.py"
   upload_files = [model_file_path, model_run_path]
   exp = init_training_job(

@@ -40,7 +40,16 @@ class ModelJobParams(Params):
     num_tempo_param:int = 1
     num_prime_param:int = 11
 
+    criterion:str = 'torch'
     tempo_loss:bool = True
+
+    articul_mask:str = 'aligned'
+
+    tempo_weight:float = 0.2
+    vel_weight:float = 0.2
+    dev_weight:float = 0.2
+    articul_weight:float = 0.2
+    pedal_weight:float = 0.2
 
 class ModelJob():
 
@@ -254,8 +263,8 @@ class ModelJob():
         # print(outputs[0][0])
 
         tempo_loss, vel_loss, dev_loss, articul_loss, pedal_loss, trill_loss, total_loss = self.calculate_loss(outputs, batch_y, note_locations, align_matched, pedal_status, batch_start)
-        if math.isnan(tempo_loss):
-            print(f'tempo loss is nan at time step {self.num_updated}')
+        if math.isnan(total_loss):
+            print(f'total loss is nan at time step {self.num_updated}')
             print('model output tensor')
             print(outputs.shape)
             print(outputs)
@@ -279,34 +288,46 @@ class ModelJob():
 
     def calculate_loss(self, outputs, batch_y, note_locations, align_matched, pedal_status, batch_start):
         if not self.params.tempo_loss:
-            tempo_loss = self.han_criterion(
+            tempo_loss = self.criterion(
                 outputs[:, :, 0:1], 
                 batch_y[:, :, 0:1], 
                 align_matched
             )
         else:
             tempo_loss = self.cal_tempo_loss_in_beat(outputs, batch_y, note_locations, batch_start)
-        vel_loss = self.han_criterion(
+        vel_loss = self.criterion(
             outputs[:, :, self.params.vel_param_idx:self.params.dev_param_idx], 
             batch_y[:, :, self.params.vel_param_idx:self.params.dev_param_idx], 
             align_matched
         )
-        dev_loss = self.han_criterion(
+        dev_loss = self.criterion(
             outputs[:, :, self.params.dev_param_idx:self.params.articul_param_idx], 
             batch_y[:, :, self.params.dev_param_idx:self.params.articul_param_idx], 
             align_matched
         )
-        articul_loss = self.han_criterion(
+        # for some reason the alignment passed in for articul was the pedal status, as opposed to the alignment. 
+        # this means that articulation is only calculated for notes that have the sustain pedal pressed, which is what 
+        # we don't want. 
+        articul_alignment = align_matched if self.params.articul_mask == 'aligned' else pedal_status
+        articul_loss = self.criterion(
             outputs[:, :, self.params.articul_param_idx:self.params.pedal_param_idx], 
             batch_y[:, :, self.params.articul_param_idx:self.params.pedal_param_idx], 
-            pedal_status
+            articul_alignment
         )
-        pedal_loss = self.han_criterion(
+        pedal_loss = self.criterion(
             outputs[:, :, self.params.pedal_param_idx:], 
             batch_y[:, :, self.params.pedal_param_idx:], 
             align_matched
         )
-        total_loss = (tempo_loss + vel_loss + dev_loss + articul_loss + pedal_loss * 7) / 11
+        #TODO: Experiment with weighted loss calcuation. 
+        total_weight = self.params.tempo_weight + self.params.vel_weight + self.params.dev_weight + self.params.articul_weight + self.params.pedal_weight
+        total_loss = (
+            self.params.tempo_weight * tempo_loss + 
+            self.params.vel_weight * vel_loss + 
+            self.params.dev_weight * dev_loss + 
+            self.params.articul_weight * articul_loss +
+            self.params.pedal_weight * pedal_loss 
+        ) / total_weight
 
         return tempo_loss, vel_loss, dev_loss, articul_loss, pedal_loss, torch.zeros(1), total_loss
 
@@ -334,7 +355,7 @@ class ModelJob():
                 pred_beat_tempo[current_beat-start_beat] = pred_x[0,i,self.params.qpm_index:self.params.qpm_index + self.params.num_tempo_param]
                 true_beat_tempo[current_beat-start_beat] = true_x[0,i,self.params.qpm_index:self.params.qpm_index + self.params.num_tempo_param]
 
-        tempo_loss = self.han_criterion(pred_beat_tempo, true_beat_tempo)
+        tempo_loss = self.criterion(pred_beat_tempo, true_beat_tempo)
         # if args.deltaLoss and pred_beat_tempo.shape[0] > 1:
         #     prediction_delta = pred_beat_tempo[1:] - pred_beat_tempo[:-1]
         #     true_delta = true_beat_tempo[1:] - true_beat_tempo[:-1]
@@ -385,7 +406,41 @@ class ModelJob():
             shutil.copyfile(filepath, best_filepath)
             self.exp.log_artifact(best_filepath, file_name)
 
-    
+    def criterion(self, pred, target, aligned_status=1):
+        if self.params.criterion == 'torch':
+            return self.torch_criterion(pred, target, aligned_status)
+        elif self.params.criterion == 'han':
+            return self.han_criterion(pred, target, aligned_status)
+        else:
+            raise Exception('Invalid criterion choice')
+
+    def torch_criterion(self, pred, target, aligned_status=1):
+        loss = nn.MSELoss()
+        if isinstance(aligned_status, int):
+            output = loss(pred, target)
+        else:
+            # create a boolean mask all of the notes that aren't aligned
+            status_squeezed = torch.squeeze(aligned_status)
+            mask = status_squeezed == 1
+            # check if mask is completely empty
+            all_false = mask.byte().any().item() == 0
+            if all_false:
+                log_neptune_timeline("No matching notes in batch", self.exp)
+                return torch.tensor(0)
+            # index pred and target only by notes that are aligned
+            p = pred[mask]
+            t = target[mask]
+            output = loss(p, t)
+            if math.isnan(output):
+                print(mask)
+                print(f'loss is nan at step: {self.num_updated}')
+                print(output)
+                print('pred')
+                print(p[:5])
+                print('target')
+                print(t[:5])
+
+        return output
 
     def han_criterion(self, pred, target, aligned_status=1):
         if isinstance(aligned_status, int):
