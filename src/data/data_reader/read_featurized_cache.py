@@ -20,6 +20,17 @@ def read_featurized(file_path, exp:Experiment):
 
     return complete_xy
 
+def read_featurized_test(file_path, exp:Experiment):
+    with open(file_path, "rb") as f:
+        u = pickle._Unpickler(f)
+        u.encoding = 'latin1'
+        # p = u.load()
+        # complete_xy = pickle.load(f)
+        data = u.load()
+
+    log_neptune_timeline(f'number of test performances: {len(data)}', exp)
+    return data
+
 def read_featurized_stats(file_path):
     with open(file_path, "rb") as f:
         u = pickle._Unpickler(f)

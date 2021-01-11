@@ -9,6 +9,14 @@ import numpy as np
 from dataclasses import dataclass, asdict, field
 from src.models.params import Params
 
+# @dataclass
+# class TransformerHyperParams(Params):
+#     num_head:int = 6
+#     hidden_size:int = 256
+#     num_encoder_layers:int = 6
+#     num_decoder_layers:int = 6
+#     dropout:float = 0.1
+
 @dataclass
 class TransformerEncoderHyperParams(Params):
 
@@ -23,7 +31,7 @@ class TransformerEncoder(nn.Module):
         super().__init__()
         from torch.nn import TransformerEncoder, TransformerEncoderLayer
         self.params = params
-        self.model_type = 'Transformer'
+        self.model_type = 'Transformer Encoder'
         self.src_mask = None
         self.pos_encoder = PositionalEncoding(params.input_size, params.dropout)
         encoder_layers = TransformerEncoderLayer(params.input_size, params.num_head, params.hidden_size, params.dropout)
@@ -57,6 +65,47 @@ class TransformerEncoder(nn.Module):
         output = self.transformer_encoder(src)
         output = self.decoder(output)
         return output
+
+# class Transformer(nn.Module):
+#         def __init__(self, params:TransformerHyperParams):
+#         super().__init__()
+#         self.params = params
+#         self.model_type = 'Transformer'
+#         self.src_mask = None
+#         self.pos_encoder = PositionalEncoding(params.input_size, params.dropout)
+#         self.transformer = nn.Transformer(params.input_size, params.num_head, params.num_encoder_layers, params.num_decoder_layers, params.hidden_size, params.dropout) 
+#         # encoder_layers = TransformerEncoderLayer(params.input_size, params.num_head, params.hidden_size, params.dropout)
+    
+#         # self.transformer_encoder = nn.TransformerEncoder(encoder_layers, params.num_layers)
+#         self.input_size = params.input_size
+#         # self.decoder = nn.Linear(params.input_size, params.output_size)
+
+#         self.init_weights()
+
+#     def _generate_square_subsequent_mask(self, sz):
+#         mask = (torch.triu(torch.ones(sz, sz)) == 1).transpose(0, 1)
+#         mask = mask.float().masked_fill(mask == 0, float('-inf')).masked_fill(mask == 1, float(0.0))
+#         return mask
+
+#     def init_weights(self):
+#         initrange = 0.1
+#         # https://stackoverflow.com/a/55546528
+#         # self.transformer_encoder.weight.data.normal_(mean=0.0, std=1/np.sqrt(self.input_size))
+#         self.decoder.bias.data.zero_()
+#         self.decoder.weight.data.uniform_(-initrange, initrange)
+
+#     def forward(self, src):
+#         if self.src_mask is None or self.src_mask.size(0) != src.size(0):
+#             device = src.device
+#             mask = self._generate_square_subsequent_mask(src.size(0)).to(device) 
+#             self.src_mask = mask
+
+#         # src = self.encoder(src) * math.sqrt(self.ninp)
+#         src = self.pos_encoder(src)
+#         output = self.transformer_encoder(src)
+#         output = self.decoder(output)
+#         return output    
+
 
 class PositionalEncoding(nn.Module):
 

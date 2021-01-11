@@ -33,7 +33,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-mode", "--sessMode", type=str, default='test', help="train or test or testAll")
 parser.add_argument("-path", "--testPath", type=str, default="./test_pieces/bps_5_1/", help="folder path of test mat")
 parser.add_argument("-data", "--dataName", type=str, default="training_data", help="dat file name")
-parser.add_argument("--resume", type=str, default="_best.pth.tar", help="best model path")
+parser.add_argument("--resume", type=str, default="_best.pth", help="best model path")
 parser.add_argument("-tempo", "--startTempo", type=int, default=0, help="start tempo. zero to use xml first tempo")
 parser.add_argument("-trill", "--trainTrill", default=False, type=lambda x: (str(x).lower() == 'true'), help="train trill")
 parser.add_argument("-slur", "--slurEdge", default=False, type=lambda x: (str(x).lower() == 'true'), help="slur edge in graph")
@@ -66,6 +66,8 @@ parser.add_argument("-exp_name", "--exp_name", default="Default Neptune Experime
 parser.add_argument("-exp_description", "--exp_description", default="Default Neptune Description", type=str, help="The experiment description to log in neptune")
 parser.add_argument("-exp_id", "--exp_id", type=str, help="The neptune experiment id to use for evaluation")
 parser.add_argument("-tags", "--exp_tags", default="legacy", type=str, help="A comma separated string of tags for the neptune experiment")
+parser.add_argument("-pre_train", "--pre_train", default=False, type=lambda x: (str(x).lower() == 'true'), help="Whether or not the performance generation is using a pre-trained model")
+
 
 random.seed(0)
 
@@ -186,10 +188,24 @@ def log_perf_gen(message:str, exp:Experiment):
 
 exp:Experiment = None 
 if args.sessMode == 'test_some':
-    model_name = 'prime_model_best.pth'
-    exp = init_performance_generation(args.exp_id, model_name)
+    artifacts = []
+    if not args.pre_train:
+        artifacts.append('prime_model_best.pth')
+        artifacts.append('params.pickle')
+    else:
+        artifacts.append(f'prime_{args.modelCode}{args.resume}')
+        artifacts.append(f'{args.modelCode}_params.pickle')
+        if args.hierCode:
+            artifacts.append(f'prime_{args.hierCode}{args.resume}')
+            artifacts.append(f'{args.hierCode}_params.pickle')
+
+        # model_name = 'prime_model_best.pth'
+    exp = init_performance_generation(args.exp_id, artifacts)
     log_perf_gen('Initialized experiment, reading params', exp)
-    NET_PARAM = read_params('./artifacts/params.pickle')
+    if not args.pre_train:
+        NET_PARAM = read_params('./artifacts/params.pickle')
+    else:
+        NET_PARAM = read_params(f'./artifacts/{args.modelCode}_params.pickle')
     TrillNET_Param = read_params('./artifacts/trill_params.pickle')
     # TrillNET_Param = param.load_parameters('./artifacts/trill_params.pickle')
 
@@ -1205,10 +1221,10 @@ if args.sessMode == 'train':
 
 elif args.sessMode in ['test', 'test_some', 'testAll', 'testAllzero', 'encode', 'encodeAll', 'evaluate', 'correlation']:
 ### test session
-    if os.path.isfile('prime_' + args.modelCode + args.resume):
-        print("=> loading checkpoint '{}'".format(args.modelCode + args.resume))
+    if os.path.isfile('artifacts/prime_' + args.modelCode + args.resume):
+        print("=> loading model checkpoint '{}'".format(args.modelCode + args.resume))
         # model_codes = ['prime', 'trill']
-        filename = 'prime_' + args.modelCode + args.resume
+        filename = 'artifacts/prime_' + args.modelCode + args.resume
         print('device is ', args.device)
         torch.cuda.set_device(args.device)
         if torch.cuda.is_available():
@@ -1225,16 +1241,17 @@ elif args.sessMode in ['test', 'test_some', 'testAll', 'testAllzero', 'encode', 
         # NUM_UPDATED = checkpoint['training_step']
         # optimizer.load_state_dict(checkpoint['optimizer'])
         # trill_filename = args.trillCode + args.resume
-        trill_filename = args.trillCode + '_best.pth.tar'
+        trill_filename = 'artifacts/trill_best.pth'
         checkpoint = torch.load(trill_filename, map_location=map_location)
         TRILL_MODEL.load_state_dict(checkpoint['state_dict'])
         print("=> loaded checkpoint '{}' (epoch {})"
               .format(trill_filename, checkpoint['epoch']))
 
         if IN_HIER:
-            HIER_MODEL_PARAM = param.load_parameters(args.hierCode + '_param')
+            # HIER_MODEL_PARAM = param.load_parameters(args.hierCode + '_param')
+            HIER_MODEL_PARAM = read_params(f'artifacts/{args.hierCode}_params.pickle')
             HIER_MODEL = nnModel.HAN_Integrated(HIER_MODEL_PARAM, DEVICE, True).to(DEVICE)
-            filename = 'prime_' + args.hierCode + args.resume
+            filename = 'artifacts/prime_' + args.hierCode + args.resume
             checkpoint = torch.load(filename, map_location=DEVICE)
             HIER_MODEL.load_state_dict(checkpoint['state_dict'])
             print("=> high-level model loaded checkpoint '{}' (epoch {})"

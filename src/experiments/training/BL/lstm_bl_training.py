@@ -13,8 +13,8 @@ class LSTMBaselineTrainingJobParams(ModelJobParams):
 
 class LSTMBaselineTraining(ModelJob):
     
-    def __init__(self, params:LSTMBaselineTrainingJobParams, model:LSTMBaseline, exp:Experiment):
-        super().__init__(params, model, exp)
+    def __init__(self, params:LSTMBaselineTrainingJobParams, model:LSTMBaseline, exp:Experiment, artifact_folder:str=None):
+        super().__init__(params, model, exp, artifact_folder)
         self.params = params
         self.model = model.to(self.params.device)
 

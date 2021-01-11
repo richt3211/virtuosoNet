@@ -4,7 +4,6 @@ from time import time
 from src.logger import init_logger
 from src.constants import CACHE_MODEL_DIR
 from src.discord_bot import sendToDiscord
-from src.models.model_writer_reader import save_checkpoint, save_params
 from src.models.params import Params
 from src.neptune import log_neptune_timeline
 from dataclasses import asdict, dataclass
@@ -35,7 +34,7 @@ class ModelJobParams(Params):
 
     num_key_augmentation:int = 1
     batch_size:int = 1
-    epochs:int = 20
+    epochs:int = 50
 
     num_tempo_param:int = 1
     num_prime_param:int = 11
@@ -53,7 +52,7 @@ class ModelJobParams(Params):
 
 class ModelJob():
 
-    def __init__(self, params:ModelJobParams, model:nn.Module, exp:Experiment):
+    def __init__(self, params:ModelJobParams, model:nn.Module, exp:Experiment, artifacts_folder=None):
         self.params = params
         self.exp = exp
         self.feature_loss_init = {
@@ -69,8 +68,9 @@ class ModelJob():
         self.hyper_params = None
         self.model = model
         self.num_updated = 0
+        self.artifacts_folder = 'artifacts' if artifacts_folder is None else artifacts_folder
 
-    def run_job(self, data, model_folder):
+    def run_job(self, data):
         try:
             type = "DEV" if self.params.is_dev else ""
             start_message = f"STARTING {self.model_name} JOB AT {self.params.epochs} EPOCHS FOR {type} DATA SET"
@@ -86,8 +86,16 @@ class ModelJob():
             self.exp.log_text('model architecture', architecture)
             logging.info(architecture)
 
+            # avoiding circular dependency... I hope
+            from src.models.model_writer_reader import initialize_artifact_folder, save_params
+            initialize_artifact_folder(self.artifacts_folder)   
+
+            # save the model parameters before starting training
+            save_params(self.artifacts_folder, self.model.params, self.exp, 'params.pickle')
+            save_params(self.artifacts_folder, self.params, self.exp, 'train_params.pickle')
+
             # training_loss_total, valid_loss_total = self.train(self.model, data, version, model_folder)
-            self.train(self.model, data, model_folder)
+            self.train(self.model, data)
 
             end_message = f'FINISHED {self.model_name} TRAINING JOB AT {self.params.epochs} EPOCHS FOR {type} DATA SET'
             log_neptune_timeline(end_message, self.exp)
@@ -103,7 +111,7 @@ class ModelJob():
             sendToDiscord("There was an error during training for the HAN BL training job, please check logs")
             raise e
 
-    def train(self, model, data, model_folder):
+    def train(self, model, data):
         best_loss = float('inf')
         for epoch in range(self.params.epochs):
             epoch_num = epoch +1
@@ -127,6 +135,7 @@ class ModelJob():
             is_best = mean_valid_loss < best_loss
             best_loss = min(mean_valid_loss, best_loss)
 
+            from src.models.model_writer_reader import save_checkpoint
             save_checkpoint(
                 state={
                     'epoch': epoch + 1,
@@ -135,11 +144,11 @@ class ModelJob():
                     'optimizer': self.optimizer.state_dict(),
                     'training_step': self.num_updated
                 }, 
+                folder=self.artifacts_folder,
                 is_best=is_best, 
                 is_dev=self.params.is_dev,
                 exp=self.exp,
             )
-            save_params(model_folder, self.model.params, self.exp)
 
             message = f'saving model at epoch {epoch +1} as the best model'
             logging.info(message)
@@ -308,7 +317,14 @@ class ModelJob():
         # for some reason the alignment passed in for articul was the pedal status, as opposed to the alignment. 
         # this means that articulation is only calculated for notes that have the sustain pedal pressed, which is what 
         # we don't want. 
-        articul_alignment = align_matched if self.params.articul_mask == 'aligned' else pedal_status
+        articul_alignment = align_matched
+        if self.params.articul_mask == 'aligned':
+            articul_alignment = align_matched
+        elif self.params.articul_mask == 'pedal':
+            articul_alignment = pedal_status
+        else:
+            log_neptune_timeline('Invalid alignment parameter, defaulting to alignment', self.exp)
+        # articul_alignment = align_matched if self.params.articul_mask == 'aligned' else pedal_status
         articul_loss = self.criterion(
             outputs[:, :, self.params.articul_param_idx:self.params.pedal_param_idx], 
             batch_y[:, :, self.params.articul_param_idx:self.params.pedal_param_idx], 

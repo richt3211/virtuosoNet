@@ -16,6 +16,7 @@ import logging
 import neptune
 import shutil
 from neptune.experiments import Experiment
+from src.models.model_writer_reader import initialize_artifact_folder
 
 from src.models.params import Params
 from src.neptune import init_experiment, log_neptune_timeline
@@ -89,11 +90,11 @@ def run_training_experiment(
   tags:list, 
   is_dev:bool, 
   hyper_params:Params, 
-  job_params:Params, 
+  job_params:ModelJobParams, 
   model_file_path:str, 
-  model_folder:str, 
   model_class, 
-  job_class
+  job_class,
+  artifact_folder:str=None, 
 ):
   #TODO Set PyTorch random seed
   model_run_path = f"{SRC_DIR}/models/model_run_job.py"
@@ -114,8 +115,8 @@ def run_training_experiment(
     data = get_full_data(exp)
 
   model = model_class(hyper_params)
-  training_job = job_class(job_params, model, exp)
-  training_job.run_job(data, model_folder=model_folder)
+  training_job = job_class(job_params, model, exp, artifact_folder)
+  training_job.run_job(data)
   
 
 

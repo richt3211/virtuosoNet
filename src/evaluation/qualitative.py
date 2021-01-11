@@ -158,7 +158,9 @@ def playMidi(filename):
     s = midi.translate.midiFileToStream(mf)
     s.show('midi')
 
-def init_performance_generation(experiment_id: str, model_name:str) -> Experiment:
+# TODO: Leaving this here for legacy purposes, but any future perf generation should use the 
+# init_evaluation in the utils.py file. 
+def init_performance_generation(experiment_id: str, artifacts:list) -> Experiment:
     '''Initalizes and creates a neptune experiment.'''  
 
     cache_dir = './artifacts'
@@ -181,9 +183,10 @@ def init_performance_generation(experiment_id: str, model_name:str) -> Experimen
 
     init_logger()
     exp:Experiment = get_experiment_by_id(experiment_id)
-        
-    exp.download_artifact(model_name, f'{cache_dir}')
-    exp.download_artifact('params.pickle', f'{cache_dir}')
+    
+    for art in artifacts:
+        exp.download_artifact(art, f'{cache_dir}')
+
     exp.download_sources()
 
     with zipfile.ZipFile('source.zip', 'r') as zip_ref:
@@ -191,9 +194,10 @@ def init_performance_generation(experiment_id: str, model_name:str) -> Experimen
 
     return exp 
 
-def legacy_test_run_str(model_code:str, exp_id:str, is_dev:str, bool_pedal:bool=True):
+def legacy_test_run_str(model_code:str, exp_id:str, is_dev:str, pre_train:bool=False, bool_pedal:bool=True, hier_code:str=None):
   data_path = f'{CACHE_DATA_DIR}/train/training_data_development' if is_dev == 'true' else f'{CACHE_DATA_DIR}/train/training_data'
   model_run_script_path = f'{ROOT_DIR}/virtuosoNet/src/old/model_run.py'
   pedal = "true" if bool_pedal else "false"
-  run_str = f'{model_run_script_path} -data={data_path} -mode=test_some -code={model_code} -is_dev={is_dev} -exp_id={exp_id} -bp={pedal}'
+  p_train = "true" if pre_train else "false"
+  run_str = f'{model_run_script_path} -data={data_path} -mode=test_some -code={model_code} {f"-hCode={hier_code}" if hier_code else ""} -is_dev={is_dev} -exp_id={exp_id} -bp={pedal} -pre_train={p_train}'
   return run_str

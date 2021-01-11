@@ -17,8 +17,8 @@ class TransformerEncoderJobParams(ModelJobParams):
     model_name:str = "TRANSFORMER ENCODER ONLY"
 
 class TransformerEncoderJob(ModelJob):
-    def __init__(self, params:TransformerEncoderJobParams, model:TransformerEncoder, exp:Experiment):
-        super().__init__(params, model, exp)
+    def __init__(self, params:TransformerEncoderJobParams, model:TransformerEncoder, exp:Experiment, artifact_folder:str=None):
+        super().__init__(params, model, exp, artifact_folder)
         self.params = params
 
         # self.num_key_augmentation = 1
