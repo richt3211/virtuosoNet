@@ -1,7 +1,9 @@
 from datetime import datetime
+from src.experiments.training.Transformer.transformer_training import TransformerEncoderJob, TransformerEncoderJobParams
 from src.logger import init_logger
 from src.models.model_run_job import ModelJob, ModelJobParams
 from src.models.params import Params
+from src.models.transformer import TransformerEncoder
 from src.neptune import get_experiment_by_id, log_neptune_timeline 
 from neptune.experiments import Experiment
 from src.data.data_reader.read_pre_processed import read_single_score
@@ -29,12 +31,12 @@ def log_evaluation_text(log:str, exp:Experiment):
     exp.log_text('evaluation', f'{datetime.now()} - {log}')
     logging.info(log)
 
-class QuantitativeEvaluator(ModelJob):
+class QuantitativeEvaluator(TransformerEncoderJob):
     
-    def __init__(self, params:ModelJobParams,  model:nn.Module, exp:Experiment,):
+    def __init__(self, params:TransformerEncoderJobParams,  model:TransformerEncoder, exp:Experiment):
         super().__init__(params, model, exp)
 
-    def run_quantitative_evaluation_on_test_set(self, model_path):
+    def run_quantitative_evaluation_on_test_set(self, model_path, data):
         log_evaluation_text('Running test set evaluation', self.exp)
         # read in the model
         log_evaluation_text('Reading in model', self.exp)
@@ -43,7 +45,7 @@ class QuantitativeEvaluator(ModelJob):
         # read in test data. 
         file_path = f'{CACHE_DATA_DIR}/train/training_data_test.pickle'
         log_evaluation_text('Reading in test data', self.exp)
-        data = read_featurized_test(file_path, self.exp)
+        # data = read_featurized_test(file_path, self.exp)
 
         log_evaluation_text('Running evaluation', self.exp)
         valid_loss, valid_feature_loss = self.evaluate(self.model, data)
@@ -52,16 +54,17 @@ class QuantitativeEvaluator(ModelJob):
         self.log_loss(valid_loss, valid_feature_loss, 'test', x_axis)
 
 
-# class LSTMBaselineQuantitativeEvaluator(QuantitativeEvaluator):
-#     def __init__(self, exp:Experiment, hyper_params_path:str='./artifacts/params.pickle', is_dynamic_source:bool=True):
-#         if is_dynamic_source:
-#             from source.lstm_bl import LSTMBaseline # type: ignore
-#         else:
-#             from src.models.lstm_bl import LSTMBaseline
+class LSTMBaselineQuantitativeEvaluator(QuantitativeEvaluator):
+    def __init__(self, exp:Experiment, hyper_params_path:str='./artifacts/params.pickle', train_params_path='./artifacts/train_params.pickle', is_dynamic_source:bool=True):
+        if is_dynamic_source:
+            from source.lstm_bl import LSTMBaseline # type: ignore
+        else:
+            from src.models.lstm_bl import LSTMBaseline
         
-#         hyper_params = read_params(hyper_params_path)
-#         model = LSTMBaseline(hyper_params)
-#         super().__init__(exp, model)
+        hyper_params = read_params(hyper_params_path)
+        training_params = read_training_params(train_params_path, exp)
+        model = LSTMBaseline(hyper_params)
+        super().__init__(training_params, model, exp)
 
 class TransformerEncoderQuantitativeEvaluator(QuantitativeEvaluator):
     def __init__(self, exp, hyper_params_path:str='./artifacts/params.pickle', train_params_path='./artifacts/train_params.pickle',is_dynamic_source:bool=True):
@@ -71,7 +74,7 @@ class TransformerEncoderQuantitativeEvaluator(QuantitativeEvaluator):
             from src.models.transformer import TransformerEncoder
         
         hyper_params = read_params(hyper_params_path)
-        training_params = read_training_params(train_params_path)
+        training_params = read_training_params(train_params_path, exp)
         model = TransformerEncoder(hyper_params)
         super().__init__(training_params, model, exp)
 

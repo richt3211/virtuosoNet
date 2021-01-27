@@ -30,8 +30,6 @@ def init_experiment(exp_name:str, exp_description:str, tags: list, params: dict=
     return exp
 
 def init_evaluation(experiment_id: str, artifacts:list) -> Experiment:
-    '''Initalizes and creates a neptune experiment.'''  
-
     cache_dir = './artifacts'
     for path in [cache_dir, 'source', 'trill_source']:
         if os.path.exists(path):

@@ -15,8 +15,9 @@ def read_featurized(file_path, exp:Experiment):
 
     train_xy = complete_xy['train']
     test_xy = complete_xy['valid']
-    log_neptune_timeline(f'number of train performances: {len(train_xy)} number of valid perf: {len(test_xy)}', exp)
-    log_neptune_timeline(f'training sample example: {train_xy[0][0][0]}', exp)
+    if exp is not None:
+        log_neptune_timeline(f'number of train performances: {len(train_xy)} number of valid perf: {len(test_xy)}', exp)
+        log_neptune_timeline(f'training sample example: {train_xy[0][0][0]}', exp)
 
     return complete_xy
 
@@ -28,7 +29,8 @@ def read_featurized_test(file_path, exp:Experiment):
         # complete_xy = pickle.load(f)
         data = u.load()
 
-    log_neptune_timeline(f'number of test performances: {len(data)}', exp)
+    if exp is not None:
+        log_neptune_timeline(f'number of test performances: {len(data)}', exp)
     return data
 
 def read_featurized_stats(file_path):

@@ -1,6 +1,8 @@
 from math import nan
 import math
 from time import time
+
+from torch.functional import Tensor
 from src.logger import init_logger
 from src.constants import CACHE_MODEL_DIR
 from src.discord_bot import sendToDiscord
@@ -265,11 +267,9 @@ class ModelJob():
     def batch_time_step_run(self, data, model, feature_loss, loss, train=True):
         batch_x, batch_y, note_locations, align_matched, pedal_status, batch_start = self.get_batch_and_alignment(data)
 
-        self.zero_grad_optim()
-        outputs = model(batch_x)
-        # print(outputs)
-        # print(outputs.shape)
-        # print(outputs[0][0])
+        if train:
+            self.zero_grad_optim()
+        outputs = self.model_inference(model, batch_x, batch_y)
 
         tempo_loss, vel_loss, dev_loss, articul_loss, pedal_loss, trill_loss, total_loss = self.calculate_loss(outputs, batch_y, note_locations, align_matched, pedal_status, batch_start)
         if math.isnan(total_loss):
@@ -489,6 +489,9 @@ class ModelJob():
         pass
 
     def step_optimizer(self, model, total_loss):
+        pass
+
+    def model_inference(self, model, src, tgt):
         pass
 
     def save_params(self, folder, exp:Experiment):
